@@ -57,15 +57,15 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Supported Question Types */}
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700 shadow-lg">
+                  {/* Supported Question Types */}
+          <div className="bg-card rounded-2xl p-8 text-center border border-border shadow-lg">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-4">
               <FileText className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            <h2 className="text-2xl font-bold text-card-foreground mb-2">
               Supported Question Types
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-8">
+            <p className="text-muted-foreground mb-8">
               Transform your assessments with comprehensive question type support
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -74,12 +74,12 @@ export default function Home() {
                 { type: 'EMQ', name: 'Extended Matching Questions', icon: '≡', color: 'from-purple-500 to-purple-600' },
                 { type: 'SAQ', name: 'Short Answer Questions', icon: '✎', color: 'from-green-500 to-green-600' }
               ].map((item) => (
-                <div key={item.type} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 border border-slate-200 dark:border-slate-600">
+                <div key={item.type} className="bg-card rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 border border-border">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 mx-auto`}>
                     <span className="text-white text-xl font-bold">{item.icon}</span>
                   </div>
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2">{item.type}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{item.name}</p>
+                  <h3 className="font-bold text-card-foreground text-lg mb-2">{item.type}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.name}</p>
                 </div>
               ))}
             </div>
