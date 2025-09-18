@@ -120,7 +120,7 @@ NODE_ENV=development
 
 ```bash
 # Navigate to project directory
-cd qti-transformer-nextjs
+git clone https://github.com/jackytameducation/assessforge
 
 # Install dependencies
 npm install
