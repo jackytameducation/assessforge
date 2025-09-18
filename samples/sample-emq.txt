@@ -1,0 +1,217 @@
+Item ID: 30036    R type (Extended Matching)
+
+Options ID: 1840
+THE FOLLOWING OPTIONS ARE A LIST OF DIFFERENT GLOMERULAR DISEASES.
+
+A. Acute poststreptococcal glomerulonephritis
+B. Alport syndrome
+C. Diabetic nephropathy
+D. Focal segmental glomerulosclerosis (FSGS)
+E. IgA nephropathy
+F. Lupus nephritis
+G. Membranoproliferative glomerulonephritis (MPGN)
+H. Membranous nephropathy
+I. Minimal change disease
+J. Pauci-immune glomerulonephritis
+
+Each of the following patient presents with certain features and basic laboratory results. Which of the above glomerular diseases is the MOST LIKELY diagnosis? The option may be used once, more than once, or not at all.
+
+
+A 9-year-old child presents with a sudden onset of periorbital and lower extremity oedema, hypoalbuminaemia, and hyperlipidaemia. Urine analysis shows massive proteinuria.
+
+Answer:I
+
+
+Profile:  <transition>Integrated  <system>Genitourinary  <discipline>Pathology  <process>Diagnosis  <taxonomy>Reasoning  <gender>Not specified  <ageGroup>Not specified  <affiliation>The University of Hong Kong  <specialty>Advanced (Medium)  <Status>Summative  <Originating Dept.>Pathology  <Level/Program>6-1  <MeSH 1>Vitamin K  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2024/May
+Examination used for Level: 6-1 At: The University of Hong Kong
+Difficulty Level: 74   Discrimination Index: 55   Pt.Biserial: 52
+Number in Group: 317   Test #: SA10524_EMQ   Question #: 12
+Percentage Of Group Selecting Options: 
+ <A>3% <B>4% <C>1% <D>2% <E>0% <F>1% <G>5% <H>9% <I>74% <J>0% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+Dr. Maximus CF Yeung (Dec 2023)
+ 
+
+End-of-Item
+ 
+Item ID: 30037    R type (Extended Matching)
+
+With reference to the previous Options & Question/LeadIn of ID: 1840
+
+A 35-year-old woman with a history of photosensitivity, malar rash, and joint pain presents with new-onset haematuria, proteinuria, and hypertension. Urine analysis reveals red blood cell casts.
+
+Answer:F
+
+
+Profile:  <transition>Integrated  <system>Genitourinary  <discipline>Pathology  <process>Diagnosis  <taxonomy>Reasoning  <gender>Not specified  <ageGroup>Not specified  <affiliation>The University of Hong Kong  <specialty>Advanced (Medium)  <Status>Supplementary  <Originating Dept.>Pathology  <Level/Program>6-1  <MeSH 1>Vitamin K  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2024/Jul
+Examination used for Level: 6-1 At: The University of Hong Kong
+Difficulty Level: 17   Discrimination Index: 19   Pt.Biserial: 27
+Number in Group: 29   Test #: SA10724-EMQ   Question #: 24
+Percentage Of Group Selecting Options: 
+ <A>14% <B>10% <C>3% <D>7% <E>17% <F>17% <G>10% <H>0% <I>3% <J>17% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+Dr. Maximus CF Yeung (Dec 2023)
+ 
+
+End-of-Item
+ 
+Item ID: 30038    R type (Extended Matching)
+
+With reference to the previous Options & Question/LeadIn of ID: 1840
+
+A 25-year-old man presents with gross haematuria 3 days after an upper respiratory infection. His laboratory results reveal mild proteinuria and elevated serum IgA levels. 
+
+Answer:E
+
+
+Profile:  <transition>Integrated  <system>Genitourinary  <discipline>Pathology  <process>Diagnosis  <taxonomy>Reasoning  <gender>Not specified  <ageGroup>Not specified  <affiliation>The University of Hong Kong  <specialty>Advanced (Medium)  <Status>Summative  <Originating Dept.>Pathology  <Level/Program>6-1  <MeSH 1>Vitamin K  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2024/May
+Examination used for Level: 6-1 At: The University of Hong Kong
+Difficulty Level: 81   Discrimination Index: 20   Pt.Biserial: 25
+Number in Group: 317   Test #: SA10524_EMQ   Question #: 13
+Percentage Of Group Selecting Options: 
+ <A>19% <B>0% <C>0% <D>0% <E>81% <F>0% <G>0% <H>0% <I>0% <J>0% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+Dr. Maximus CF Yeung (Dec 2023)
+ 
+
+End-of-Item
+ 
+Item ID: 30039    R type (Extended Matching)
+
+With reference to the previous Options & Question/LeadIn of ID: 1840
+
+A 50-year-old man with a history of obesity and polyuria presents with worsening hypertension, proteinuria, and elevated serum creatinine levels. His random glucose is 13 mmol/L and HbA1c is 8.5%.
+
+Answer:C
+
+
+Profile:  <transition>Integrated  <system>Genitourinary  <discipline>Pathology  <process>Diagnosis  <taxonomy>Reasoning  <gender>Not specified  <ageGroup>Not specified  <affiliation>The University of Hong Kong  <specialty>Advanced (Medium)  <Status>Supplementary  <Originating Dept.>Not specified  <Level/Program>6-1  <MeSH 1>Vitamin K  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2024/Jul
+Examination used for Level: 6-1 At: The University of Hong Kong
+Difficulty Level: 66   Discrimination Index: 46   Pt.Biserial: 55
+Number in Group: 29   Test #: SA10724-EMQ   Question #: 25
+Percentage Of Group Selecting Options: 
+ <A>3% <B>0% <C>66% <D>14% <E>3% <F>0% <G>10% <H>3% <I>0% <J>0% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+Dr. Maximus CF Yeung (Dec 2023)
+ 
+
+End-of-Item 
+Item ID: 23412    R type (Extended Matching)
+
+Options ID: 1442
+ARTERIES OF THE UPPER EXTREMITY
+A. Axillary artery
+B. Brachial artery
+C. Dorsal scapular artery
+D. Lateral thoracic artery
+E. Profunda brachii artery
+F. Radial artery
+G. Subscapular artery
+H. Supreme thoracic artery
+I. Thoracoacromial artery
+J. Ulnar artery
+
+In each of the following diagrams, select the BEST option from the list of arteries above to indicate the blood vessels pointed by an arrow. Each option may be used once, more than once, or not at all.
+
+
+ 
+
+Answer:D
+
+
+Profile:  <transition>Basic  <system>Musculoskeletal  <discipline>Anatomy/Histology  <process>Not Applicable  <taxonomy>Recall  <gender>Not Applicable  <ageGroup>Not Applicable  <affiliation>The University of Hong Kong  <specialty>Core (Medium)  <Status>Summative  <Originating Dept.>Anatomy/Histology  <Level/Program>6-2  <MeSH 1>Not applicable  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2019/May
+Examination used for Level: 6-2 At: The University of Hong Kong
+Difficulty Level: 49   Discrimination Index: 55   Pt.Biserial: 40
+Number in Group: 243   Test #: 205   Question #: 6
+Percentage Of Group Selecting Options: 
+ <A>1% <B>0% <C>14% <D>49% <E>2% <F>0% <G>7% <H>7% <I>19% <J>0% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+ALM Cheung (Apr 2019)
+ 
+
+End-of-Item
+ 
+Item ID: 23413    R type (Extended Matching)
+
+With reference to the previous Options & Question/LeadIn of ID: 1442
+
+ 
+
+Answer:E
+
+
+Profile:  <transition>Basic  <system>Musculoskeletal  <discipline>Anatomy/Histology  <process>Not Applicable  <taxonomy>Recall  <gender>Not Applicable  <ageGroup>Not Applicable  <affiliation>The University of Hong Kong  <specialty>Core (Medium)  <Status>Summative  <Originating Dept.>Anatomy/Histology  <Level/Program>6-2  <MeSH 1>Not applicable  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2019/May
+Examination used for Level: 6-2 At: The University of Hong Kong
+Difficulty Level: 65   Discrimination Index: 56   Pt.Biserial: 44
+Number in Group: 243   Test #: 205   Question #: 7
+Percentage Of Group Selecting Options: 
+ <A>3% <B>11% <C>0% <D>0% <E>65% <F>19% <G>0% <H>0% <I>0% <J>1% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+ALM Cheung (Apr 2019)
+ 
+
+End-of-Item
+ 
+Item ID: 23414    R type (Extended Matching)
+
+With reference to the previous Options & Question/LeadIn of ID: 1442
+
+ 
+
+Answer:G
+
+
+Profile:  <transition>Basic  <system>Musculoskeletal  <discipline>Anatomy/Histology  <process>Not Applicable  <taxonomy>Recall  <gender>Not Applicable  <ageGroup>Not Applicable  <affiliation>The University of Hong Kong  <specialty>Core (Medium)  <Status>Summative  <Originating Dept.>Anatomy/Histology  <Level/Program>6-2  <MeSH 1>Not applicable  <MeSH 2>Not applicable
+
+
+
+Last Use Statistics: Examination Year: 2019/May
+Examination used for Level: 6-2 At: The University of Hong Kong
+Difficulty Level: 79   Discrimination Index: 32   Pt.Biserial: 29
+Number in Group: 243   Test #: 205   Question #: 8
+Percentage Of Group Selecting Options: 
+ <A>0% <B>0% <C>10% <D>7% <E>1% <F>1% <G>79% <H>0% <I>2% <J>0% <K>0% <L>0% <M>0% <N>0% <O>0%
+Second Last Use Statistics: N/A 
+
+Background Info.:
+ALM Cheung (Apr 2019)
+ 
+
+End-of-Item
+
