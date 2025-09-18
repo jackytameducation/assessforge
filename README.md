@@ -351,6 +351,42 @@ CMD ["npm", "start"]
 
 ### 🚀 **Ready for Production**
 The application is fully functional and ready for deployment to production environments.
+
+## 🚀 Deployment
+
+AssessForge is designed as a **stateless application** that requires **no external databases or file storage systems**. All file processing happens in-memory.
+
+### Quick Deployment
+
+#### Docker (Recommended)
+```bash
+# Build and run with Docker
+docker build -t assessforge .
+docker run -p 3000:3000 assessforge
+```
+
+#### Traditional Deployment
+```bash
+# Install dependencies and build
+npm ci --only=production
+npm run build
+npm start
+```
+
+#### Platform-as-a-Service
+Deploy directly to:
+- ✅ Vercel (zero-config)
+- ✅ Railway, Render, DigitalOcean App Platform
+- ✅ Google Cloud Run, AWS Amplify
+
+### Infrastructure Requirements
+- **Node.js**: 18.17.0 or higher
+- **Memory**: 512MB minimum, 1GB recommended
+- **Storage**: 200MB for application files
+- **No database required**: Completely stateless
+- **No file storage required**: In-memory processing only
+
+📋 **See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment guide including Docker, PM2, scaling considerations, and FAQ.**
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
