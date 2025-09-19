@@ -1,5 +1,17 @@
-# Final Update Summary
+# Update Summary
 
+
+## 20250819
+### feat: Add collapse/expand functionality and improve dark mode support
+- Add collapse/expand feature to download page sections (Individual Files & Package Info)
+- Default sections to collapsed state for cleaner UI
+- Fix MCQ preview readability in dark mode
+- Improve theme provider with resolvedTheme tracking
+- Update sidebar and layout to use explicit theme-aware colors
+- Enhance preview page option styling for better dark mode contrast
+
+
+## 20250818
 ## ✅ Dark Mode Issue Resolution
 
 ### **Convert Page (`/src/app/convert/page.tsx`)**
