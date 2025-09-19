@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HKUMedLogo } from '@/components/HKUMedLogo';
+import { useTheme } from '@/components/theme-provider';
 import { 
   Upload, 
   FileText, 
@@ -31,12 +32,18 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+
+  // Explicit theme-aware classes
+  const sidebarClasses = resolvedTheme === 'dark' 
+    ? 'bg-gray-900 border-gray-700' 
+    : 'bg-white border-gray-200';
 
   return (
-    <div className="flex h-full flex-col border-e border-border bg-background overflow-hidden">
-      <div className={`py-4 sm:py-6 overflow-y-auto flex-1 bg-background transition-all duration-300 ${
+    <div className={`flex h-full flex-col border-e overflow-hidden ${sidebarClasses}`}>
+      <div className={`py-4 sm:py-6 overflow-y-auto flex-1 transition-all duration-300 ${
         collapsed ? 'px-2' : 'px-4'
-      }`}>
+      } ${sidebarClasses}`}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className={`flex items-center gap-2 flex-1 min-w-0 ${collapsed ? 'justify-center' : ''}`}>
             {collapsed ? (
@@ -52,7 +59,11 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="hidden lg:block p-1.5 rounded-lg hover:bg-accent transition-colors flex-shrink-0"
+              className={`hidden lg:block p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+                resolvedTheme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
@@ -67,7 +78,11 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors lg:hidden flex-shrink-0"
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors lg:hidden flex-shrink-0 ${
+                resolvedTheme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
               aria-label="Close sidebar"
             >
               <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -89,8 +104,12 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
                       : 'px-3 sm:px-4 py-2.5 sm:py-3'
                   } ${
                     isActive
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? resolvedTheme === 'dark'
+                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                        : 'bg-blue-50 text-blue-600 border border-blue-200'
+                      : resolvedTheme === 'dark'
+                        ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                   title={collapsed ? item.name : undefined}
                 >
@@ -111,7 +130,9 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
         {/* Collapsed Progress Indicator */}
         {collapsed && (
           <div className="mt-auto mb-4">
-            <div className="text-xs text-center text-muted-foreground mb-2">Progress</div>
+            <div className={`text-xs text-center mb-2 ${
+              resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>Progress</div>
             <div className="flex flex-col items-center gap-2">
               {navigation.map((item, index) => {
                 const isActive = pathname === item.href;
@@ -125,7 +146,9 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
                         ? 'bg-blue-500 border-blue-500' 
                         : isCompleted 
                         ? 'bg-green-500 border-green-500' 
-                        : 'bg-transparent border-muted-foreground/30'
+                        : resolvedTheme === 'dark'
+                        ? 'bg-transparent border-gray-600'
+                        : 'bg-transparent border-gray-300'
                     }`}
                     title={item.name}
                   />

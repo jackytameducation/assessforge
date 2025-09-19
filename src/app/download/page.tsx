@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, CheckCircle, Package, FileArchive } from 'lucide-react';
+import { ArrowLeft, Download, CheckCircle, Package, FileArchive, ChevronDown, ChevronRight } from 'lucide-react';
 import JSZip from 'jszip';
 import Footer from '@/components/Footer';
 
@@ -22,6 +22,8 @@ interface ConvertResult {
 export default function DownloadPage() {
   const [convertResult, setConvertResult] = useState<ConvertResult | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showIndividualFiles, setShowIndividualFiles] = useState(false);
+  const [showPackageInfo, setShowPackageInfo] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -170,12 +172,27 @@ export default function DownloadPage() {
 
         {/* Individual Files */}
         <div className="border border-border rounded-lg p-4 sm:p-6">
-          <h4 className="text-base sm:text-lg font-semibold text-card-foreground mb-3 sm:mb-4">Individual Files</h4>
-          <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-            Download files individually if needed for debugging or manual processing
-          </p>
+          <button
+            onClick={() => setShowIndividualFiles(!showIndividualFiles)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div>
+              <h4 className="text-base sm:text-lg font-semibold text-card-foreground mb-1">Individual Files</h4>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Download files individually if needed for debugging or manual processing
+              </p>
+            </div>
+            <div className="flex-shrink-0 ml-4">
+              {showIndividualFiles ? (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              )}
+            </div>
+          </button>
           
-          <div className="space-y-2 sm:space-y-3">
+          {showIndividualFiles && (
+            <div className="space-y-2 sm:space-y-3 mt-4">
             {/* Manifest File */}
             <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -229,13 +246,28 @@ export default function DownloadPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
 
       {/* Package Information */}
       <div className="bg-card rounded-lg shadow-sm border border-border p-4 sm:p-6 mb-4 sm:mb-6">
-        <h3 className="text-base sm:text-lg font-medium text-card-foreground mb-3 sm:mb-4">Package Information</h3>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <button
+          onClick={() => setShowPackageInfo(!showPackageInfo)}
+          className="flex items-center justify-between w-full text-left"
+        >
+          <h3 className="text-base sm:text-lg font-medium text-card-foreground">Package Information</h3>
+          <div className="flex-shrink-0 ml-4">
+            {showPackageInfo ? (
+              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+        </button>
+        
+        {showPackageInfo && (
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
           <div>
             <dt className="text-xs sm:text-sm font-medium text-muted-foreground">QTI Version</dt>
             <dd className="text-sm sm:text-base text-card-foreground">2.1</dd>
@@ -251,10 +283,10 @@ export default function DownloadPage() {
             <dd className="text-sm sm:text-base text-card-foreground">IMS Common Cartridge</dd>
           </div>
           <div>
-            <dt className="text-xs sm:text-sm font-medium text-muted-foreground">Compatibility</dt>
-            <dd className="text-sm sm:text-base text-card-foreground">Inspera, Moodle, Canvas, Blackboard</dd>
-          </div>
-        </dl>
+            <dt className="text-xs sm:text-sm font-medium text-muted-foreground">Compatibility</dt>          <dd className="text-sm sm:text-base text-card-foreground">Inspera, Moodle, Canvas, Blackboard</dd>
+        </div>
+      </dl>
+        )}
       </div>
 
       {/* Navigation */}

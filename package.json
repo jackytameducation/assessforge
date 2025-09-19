@@ -1,21 +1,16 @@
 {
-  "name": "assessforge",
+  "name": "qti-transformer-nextjs",
   "version": "1.0.0",
-  "description": "AssessForge - A modern Next.js application for HKU Medicine to forge educational assessments into QTI 2.1 format for seamless Inspera integration",
+  "description": "A modern Next.js application for HKU Medicine to transform educational documents into QTI 2.1 format for Inspera assessment platform",
   "keywords": [
-    "assessforge",
     "qti",
     "education",
     "assessment",
     "nextjs",
     "hku",
-    "medicine",
     "docx",
     "parser",
-    "inspera",
-    "mcq",
-    "emq",
-    "saq"
+    "inspera"
   ],
   "homepage": "https://github.com/yourusername/qti-transformer-nextjs",
   "repository": {

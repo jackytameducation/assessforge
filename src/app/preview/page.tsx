@@ -213,15 +213,15 @@ export default function PreviewPage() {
                     {question.options.map((option, optionIndex) => (
                       <div 
                         key={optionIndex} 
-                        className={`text-sm p-2 rounded ${
+                        className={`text-sm p-2 rounded border ${
                           option.letter === question.correctAnswer 
-                            ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
-                            : 'bg-muted/50 dark:bg-muted/20 border border-border/50'
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-900 dark:text-green-100' 
+                            : 'bg-muted/50 dark:bg-muted/20 border-border text-foreground'
                         }`}
                       >
                         <span className="font-medium">{option.letter}.</span> {option.text}
                         {option.letter === question.correctAnswer && (
-                          <span className="ml-2 text-green-600 text-xs">✓ Correct</span>
+                          <span className="ml-2 text-green-600 dark:text-green-400 text-xs">✓ Correct</span>
                         )}
                       </div>
                     ))}
@@ -230,7 +230,7 @@ export default function PreviewPage() {
               )}
 
               {/* Metadata Toggle */}
-              <div className="border-t border-gray-100 pt-4">
+              <div className="border-t border-border pt-4">
                 <button
                   onClick={() => toggleMetadataExpanded(question.itemId)}
                   className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

@@ -6,6 +6,7 @@ import ProgressIndicator from "@/components/ProgressIndicator";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { HKUMedLogo } from "@/components/HKUMedLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/theme-provider";
 import { ExternalLink, Menu } from "lucide-react";
 
 interface ClientLayoutProps {
@@ -16,6 +17,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+  const { resolvedTheme } = useTheme();
+
+  // Explicit theme-aware classes
+  const sidebarBgClasses = resolvedTheme === 'dark' 
+    ? 'bg-gray-900 border-gray-700' 
+    : 'bg-white border-gray-200';
 
   const closeSidebar = () => {
     setIsAnimating(true);
@@ -78,7 +85,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             <div className={`relative flex w-full flex-col transform transition-transform duration-300 ease-in-out ${
               sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}>
-              <div className="relative flex w-full flex-col shadow-2xl bg-background border-r border-border">
+              <div className={`relative flex w-full flex-col shadow-2xl border-r ${sidebarBgClasses}`}>
                 <Sidebar onClose={closeSidebar} />
               </div>
             </div>
