@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2025-09-19
 
-This release finalizes the application for deployment, focusing on major workflow enhancements, UI polish, and critical bug fixes for QTI generation.
+This release finalizes the application for production, incorporating a complete UI overhaul for theme consistency, major documentation updates, and critical workflow enhancements.
 
 ### Added
 
@@ -16,6 +16,7 @@ This release finalizes the application for deployment, focusing on major workflo
 -   **Default Collapsed Questions**: On the "Preview" page, the question list is now collapsed by default to provide a clean overview and reduce scrolling.
 -   **Full-Screen Mobile Menu**: The sidebar navigation on mobile devices now opens as a full-screen overlay for an improved user experience.
 -   **Improved Readability**: Enhanced the color contrast and typography in the light theme to significantly improve text readability.
+-   **Project Branding**: Updated the project title to "QTI Transformer - HKU Medicine" throughout the application and documentation.
 -   **UI Refinements**:
     -   Fixed the "Preview" icon visibility on the home page for the light theme.
     -   Adjusted the "AssessForge" title gradient to ensure all letters are clearly visible.
@@ -24,11 +25,23 @@ This release finalizes the application for deployment, focusing on major workflo
 
 ### Fixed
 
+-   **Dark Mode UI**: Resolved all remaining dark mode rendering issues by replacing hardcoded colors with semantic Tailwind classes for full theme support across all pages.
+    -   **Convert Page**: Fixed styling for file list items and QTI package content.
+    -   **Download Page**: Corrected styling for individual file download sections, the compatibility section, and navigation buttons.
 -   **EMQ Stimulus Generation**: Corrected the QTI generation logic for Extended Matching Questions (EMQs) to ensure the correct order of stimulus components (Topic, Options, Instructions) and prevent redundant content.
 
 ### Removed
 
 -   **Unused Parse Page**: Removed the obsolete `/parse` page and its references to simplify the application structure.
+
+### Documentation
+
+-   **README Overhaul**: Completely rewrote `README.md` to include:
+    -   Updated branding, description, and technology badges (Next.js 15, React 19).
+    -   A comprehensive 4-step workflow guide.
+    -   Detailed sections on application architecture, project structure, and QTI compliance.
+    -   A "Migration Status" section marking the project as "Ready for Production."
+-   **Migration Status**: Updated `MIGRATION_COMPLETE.md` to reflect full light/dark/auto theme support.
 
 ---
 
