@@ -1,13 +1,19 @@
 
 # QTI Transformer - HKU Medicine
+<div align="center">
 
-\<div align="center"\>
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 
-[](https://www.google.com/search?q=%5Bhttps://opensource.org/licenses/MIT%5D\(https://opensource.org/licenses/MIT\))
-[](https://www.imsglobal.org/question/)
-[](https://hku.inspera.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![QTI Compliant](https://img.shields.io/badge/QTI-2.1_Compliant-blue?style=for-the-badge)](https://www.imsglobal.org/question/)
+[![Inspera Ready](https://img.shields.io/badge/Inspera-Ready-green?style=for-the-badge)](https://hku.inspera.com)
 
-\</div\>
+</div>
+
 
 -----
 
@@ -47,45 +53,44 @@ Built with Next.js 15, React 19, TypeScript, and Tailwind CSS for seamless docum
 -----
 
 ## 🛠️ Technology Stack
-
-\<table\>
-\<tr\>
-\<td\>\<b\>Frontend\</b\>\</td\>
-\<td\>
-\<img src="[https://img.shields.io/badge/Next.js-15-black?style=flat-square\&logo=next.js\&logoColor=white](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js&logoColor=white)" alt="Next.js"\>
-\<img src="[https://img.shields.io/badge/React-19-61DAFB?style=flat-square\&logo=react\&logoColor=black](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)" alt="React"\>
-\<img src="[https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square\&logo=typescript\&logoColor=white](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript&logoColor=white)" alt="TypeScript"\>
-\</td\>
-\</tr\>
-\<tr\>
-\<td\>\<b\>Styling\</b\>\</td\>
-\<td\>
-\<img src="[https://img.shields.io/badge/Tailwind\_CSS-4.0-38B2AC?style=flat-square\&logo=tailwind-css\&logoColor=white](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)" alt="Tailwind CSS"\>
-\<img src="[https://img.shields.io/badge/Lucide\_React-Icons-FF6B6B?style=flat-square](https://img.shields.io/badge/Lucide_React-Icons-FF6B6B?style=flat-square)" alt="Lucide React"\>
-\</td\>
-\</tr\>
-\<tr\>
-\<td\>\<b\>Backend\</b\>\</td\>
-\<td\>
-\<img src="[https://img.shields.io/badge/Node.js-20+-339933?style=flat-square\&logo=nodedotjs\&logoColor=white](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=nodedotjs&logoColor=white)" alt="Node.js"\>
-\<img src="[https://img.shields.io/badge/API\_Routes-Next.js-black?style=flat-square](https://img.shields.io/badge/API_Routes-Next.js-black?style=flat-square)" alt="API Routes"\>
-\</td\>
-\</tr\>
-\<tr\>
-\<td\>\<b\>File Processing\</b\>\</td\>
-\<td\>
-\<img src="[https://img.shields.io/badge/Mammoth.js-DOCX-orange?style=flat-square](https://img.shields.io/badge/Mammoth.js-DOCX-orange?style=flat-square)" alt="Mammoth"\>
-\<img src="[https://img.shields.io/badge/React\_Dropzone-File\_Upload-green?style=flat-square](https://img.shields.io/badge/React_Dropzone-File_Upload-green?style=flat-square)" alt="React Dropzone"\>
-\</td\>
-\</tr\>
-\<tr\>
-\<td\>\<b\>Standards\</b\>\</td\>
-\<td\>
-\<img src="[https://img.shields.io/badge/QTI-2.1-blue?style=flat-square](https://img.shields.io/badge/QTI-2.1-blue?style=flat-square)" alt="QTI 2.1"\>
-\<img src="[https://img.shields.io/badge/XML-Valid-brightgreen?style=flat-square](https://img.shields.io/badge/XML-Valid-brightgreen?style=flat-square)" alt="XML"\>
-\</td\>
-\</tr\>
-\</table\>
+<table>
+<tr>
+<td><b>Frontend</b></td>
+<td>
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+</td>
+</tr>
+<tr>
+<td><b>Styling</b></td>
+<td>
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Lucide_React-Icons-FF6B6B?style=flat-square" alt="Lucide React">
+</td>
+</tr>
+<tr>
+<td><b>Backend</b></td>
+<td>
+  <img src="https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/API_Routes-Next.js-black?style=flat-square" alt="API Routes">
+</td>
+</tr>
+<tr>
+<td><b>File Processing</b></td>
+<td>
+  <img src="https://img.shields.io/badge/Mammoth.js-DOCX-orange?style=flat-square" alt="Mammoth">
+  <img src="https://img.shields.io/badge/React_Dropzone-File_Upload-green?style=flat-square" alt="React Dropzone">
+</td>
+</tr>
+<tr>
+<td><b>Standards</b></td>
+<td>
+  <img src="https://img.shields.io/badge/QTI-2.1-blue?style=flat-square" alt="QTI 2.1">
+  <img src="https://img.shields.io/badge/XML-Valid-brightgreen?style=flat-square" alt="XML">
+</td>
+</tr>
+</table>
 
 -----
 
@@ -167,4 +172,4 @@ Contributions are welcome\! Please feel free to submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/jackytameducation/assessforge/blob/v1.0/LICENSE) file for details.
