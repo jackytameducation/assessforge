@@ -12,15 +12,15 @@
     "parser",
     "inspera"
   ],
-  "homepage": "https://github.com/yourusername/qti-transformer-nextjs",
+  "homepage": "https://github.com/jackytameducation/assessforge",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/qti-transformer-nextjs.git"
+    "url": "https://github.com/jackytameducation/assessforge.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/qti-transformer-nextjs/issues"
+    "url": "https://github.com/jackytameducation/assessforge/issues"
   },
-  "author": "HKU LKS Faculty of Medicine",
+  "author": "LKS Faculty of Medicine, The University of Hong Kong",
   "license": "MIT",
   "private": false,
   "scripts": {
