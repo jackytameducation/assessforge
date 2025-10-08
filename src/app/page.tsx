@@ -34,26 +34,22 @@ export default function Home() {
           </div>
 
           {/* Interactive Process Steps */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
             {[
-              { icon: Upload, title: 'Upload', desc: 'Drop your .docx or .txt files', color: 'from-green-500 to-emerald-500', step: 1, href: '/upload' },
-              { icon: FileText, title: 'Preview', desc: 'Review parsed questions', color: 'from-blue-500 to-indigo-500', step: 2, href: '/preview' },
-              { icon: Zap, title: 'Convert', desc: 'Generate QTI 2.1 format', color: 'from-purple-500 to-violet-500', step: 3, href: '/convert' },
-              { icon: Download, title: 'Download', desc: 'Get your QTI package', color: 'from-orange-500 to-amber-500', step: 4, href: '/download' }
-            ].map((item, index) => (
-              <Link key={item.step} href={item.href} className="group relative bg-card rounded-xl p-6 border border-border hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer block">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon className="h-6 w-6 text-white" />
+              { icon: Upload, title: 'Upload', desc: 'Drop your .docx or .txt assessment files', color: 'from-blue-500 to-indigo-500', step: 1, href: '/upload' },
+              { icon: FileText, title: 'Review', desc: 'Verify all questions were parsed correctly', color: 'from-purple-500 to-violet-500', step: 2, href: '/preview' },
+              { icon: Download, title: 'Download', desc: 'Get your QTI 2.1 package for Inspera', color: 'from-green-500 to-emerald-500', step: 3, href: '/download' }
+            ].map((item) => (
+              <div key={item.step} className="group relative bg-card rounded-xl p-6 border border-border hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md`}>
+                  <item.icon className="h-7 w-7 text-white" />
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium text-muted-foreground">STEP {item.step}</span>
+                  <span className="text-xs font-bold text-muted-foreground bg-secondary px-2 py-1 rounded">STEP {item.step}</span>
                 </div>
-                <h3 className="font-semibold text-card-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </Link>
+                <h3 className="font-bold text-card-foreground text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
 

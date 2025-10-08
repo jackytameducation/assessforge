@@ -44,7 +44,7 @@ export class QTIGenerator {
                 
                 // Generate EMQ stimulus if options exist and haven't been generated yet
                 if (emqQuestion.optionsId && emqQuestion.options && emqQuestion.options.length > 0 && !generatedEMQStimuli.has(emqQuestion.optionsId)) {
-                    const emqStimulus = this.generateEMQStimulus(emqQuestion.optionsId, emqQuestion.options);
+                    const emqStimulus = this.generateEMQStimulus(emqQuestion.optionsId, emqQuestion.options, emqQuestion.sharedContext);
                     qtiPackage.items.push(emqStimulus);
                     generatedEMQStimuli.add(emqQuestion.optionsId);
                 }
@@ -283,9 +283,7 @@ ${sectionsXML}  </testPart>
         
         let choicesXML = '';
         question.options.forEach(option => {
-            choicesXML += `        <simpleChoice identifier="choice_${option.letter}" fixed="true">
-          ${this.escapeXML(option.text)}
-        </simpleChoice>\n`;
+            choicesXML += `        <simpleChoice identifier="choice_${option.letter}" fixed="true">${this.escapeXML(option.text)}</simpleChoice>\n`;
         });
 
         const itemXML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -334,13 +332,21 @@ ${choicesXML}    </choiceInteraction>
         const itemId = `item_${question.itemId}_${uuidv4()}`;
         const responseId = `RESPONSE_${uuidv4()}`;
 
-        // Generate options XML
+        // Generate options XML for the interaction
         let choicesXML = '';
         question.options.forEach(option => {
-            choicesXML += `        <simpleChoice identifier="choice_${option.letter}" fixed="true">
-          ${this.escapeXML(option.text)}
-        </simpleChoice>\n`;
+            choicesXML += `        <simpleChoice identifier="choice_${option.letter}" fixed="true">${this.escapeXML(option.text)}</simpleChoice>\n`;
         });
+
+        // For EMQ, the question content should ONLY show the specific question (e.g., "Dengue")
+        // The stimulus (topic, options, instructions) is in a separate stimulus document
+        // DO NOT duplicate the stimulus content here
+        let questionContentXML = '';
+        if (question.text && question.text.trim()) {
+            questionContentXML = `    <div class="question">
+      <p><strong>${this.escapeXML(question.text)}</strong></p>
+    </div>\n`;
+        }
 
         const itemXML = `<?xml version="1.0" encoding="UTF-8"?>
 <assessmentItem identifier="${itemId}" title="${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
@@ -349,7 +355,6 @@ ${choicesXML}    </choiceInteraction>
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
   <!-- Item ID: ${question.itemId} -->
   <!-- Options ID: ${question.optionsId || 'N/A'} -->
-  <!-- Reference ID: ${question.referenceId || 'N/A'} -->
   <responseDeclaration identifier="${responseId}" cardinality="single" baseType="identifier">
     <correctResponse>
       <value>choice_${question.correctAnswer}</value>
@@ -366,10 +371,8 @@ ${choicesXML}    </choiceInteraction>
     </defaultValue>
   </outcomeDeclaration>
   <itemBody>
-    <div>
-${this.formatQuestionContent(question)}    </div>
-    <choiceInteraction responseIdentifier="${responseId}" shuffle="false" maxChoices="1">
-      <prompt>Select the most appropriate option:</prompt>
+${questionContentXML}    <choiceInteraction responseIdentifier="${responseId}" shuffle="false" maxChoices="1">
+      <prompt>Select your answer:</prompt>
 ${choicesXML}    </choiceInteraction>
   </itemBody>
   <responseProcessing template="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct"/>
@@ -482,17 +485,52 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
     static generateEMQStimulus(optionsId: string, options: any[], sharedContext?: string): QTIItem {
         const stimulusId = `stimulus_${optionsId}_${uuidv4()}`;
 
-        // Generate options text
-        let optionsText = '';
-        if (options && options.length > 0) {
-            optionsText = '<p><strong>Options:</strong></p>\n<ul>\n';
-            options.forEach(option => {
-                optionsText += `  <li><strong>${option.letter}.</strong> ${this.escapeXML(option.text)}</li>\n`;
-            });
-            optionsText += '</ul>\n';
+        let stimulusContent = '';
+        
+        // Parse sharedContext to extract topic header, options, and instructions
+        if (sharedContext) {
+            const lines = sharedContext.split('\n').filter(line => line.trim());
+            let topicHeader = '';
+            let optionsLines: string[] = [];
+            let instructions = '';
+            
+            // First line is typically the topic header
+            if (lines.length > 0) {
+                topicHeader = lines[0];
+            }
+            
+            // Extract options lines (A., B., C., etc.)
+            const optionLineRegex = /^[A-J]\.\s/;
+            for (let i = 1; i < lines.length; i++) {
+                if (optionLineRegex.test(lines[i])) {
+                    optionsLines.push(lines[i]);
+                } else if (lines[i].toLowerCase().includes('select') || 
+                          lines[i].toLowerCase().includes('choose') || 
+                          lines[i].toLowerCase().includes('match') ||
+                          lines[i].toLowerCase().includes('may be used') ||
+                          lines[i].toLowerCase().includes('for each')) {
+                    // This is instruction text
+                    instructions = lines.slice(i).join(' ');
+                    break;
+                }
+            }
+            
+            // Build stimulus content: Topic Header + Options + Instructions
+            if (topicHeader) {
+                stimulusContent += `<p><strong>${this.escapeXML(topicHeader)}</strong></p>\n`;
+            }
+            
+            // Add options WITH letters
+            if (optionsLines.length > 0) {
+                optionsLines.forEach(line => {
+                    stimulusContent += `<p>${this.escapeXML(line)}</p>\n`;
+                });
+            }
+            
+            if (instructions) {
+                stimulusContent += `<p>${this.escapeXML(instructions)}</p>\n`;
+            }
         }
-
-        const contextText = sharedContext ? `<p><strong>Context:</strong></p>\n<p>${this.escapeXML(sharedContext)}</p>\n` : '';
 
         const documentXML = `<?xml version="1.0" encoding="UTF-8"?>
 <assessmentItem identifier="${stimulusId}" title="Stimulus for EMQ Options ${optionsId}" adaptive="false" timeDependent="false"
@@ -502,7 +540,7 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
   <!-- EMQ Stimulus Document for Options ID: ${optionsId} -->
   <itemBody>
     <div class="stimulus">
-      ${contextText}${optionsText}
+      ${stimulusContent}
     </div>
   </itemBody>
 </assessmentItem>`;
@@ -563,7 +601,12 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
      */
     static escapeXML(text: string): string {
         if (!text) return '';
-        return text
+        // Trim and normalize whitespace before escaping
+        const normalizedText = text
+            .trim()
+            .replace(/\s+/g, ' '); // Replace multiple spaces with single space
+        
+        return normalizedText
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')

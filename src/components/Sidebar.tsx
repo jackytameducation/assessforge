@@ -8,7 +8,6 @@ import {
   Upload, 
   FileText, 
   Download, 
-  Settings,
   Home,
   BookOpen,
   X,

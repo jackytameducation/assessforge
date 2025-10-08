@@ -108,27 +108,28 @@ export default function DownloadPage() {
     <div className="flex flex-col min-h-screen">
       <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Download QTI Package</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Download Your QTI Package</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Your QTI 2.1 compliant package is ready for download
+          Your assessment is ready to import into Inspera
         </p>
       </div>
 
       {/* Success Message */}
-      <div className="bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-800/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 dark:from-green-950/20 dark:to-emerald-950/20 dark:border-green-800/30 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm">
         <div className="flex items-start sm:items-center gap-3">
-          <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 dark:text-green-400 flex-shrink-0 mt-1 sm:mt-0" />
+          <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg flex-shrink-0">
+            <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
+          </div>
           <div>
-            <h3 className="text-base sm:text-lg font-semibold text-green-900 dark:text-green-100">Conversion Complete!</h3>
-            <p className="text-sm sm:text-base text-green-700 dark:text-green-200">
-              Your questions have been successfully converted to QTI 2.1 format.
+            <h3 className="text-base sm:text-lg font-bold text-green-900 dark:text-green-100 mb-1">✨ Success!</h3>
+            <p className="text-sm sm:text-base text-green-700 dark:text-green-200 mb-2">
+              Your QTI 2.1 package has been generated and is ready to download.
             </p>
-            <p className="text-green-600 dark:text-green-300 text-xs sm:text-sm mt-2">
-              💡 After downloading, you can import this QTI package directly into{' '}
-              <a href="https://hku.inspera.com/admin" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+            <p className="text-green-600 dark:text-green-300 text-xs sm:text-sm">
+              💡 <strong>Next step:</strong> Import this package directly into{' '}
+              <a href="https://hku.inspera.com/admin" target="_blank" rel="noopener noreferrer" className="underline font-semibold hover:text-green-700 dark:hover:text-green-200">
                 Inspera Assessment
-              </a>{' '}
-              .
+              </a>
             </p>
           </div>
         </div>

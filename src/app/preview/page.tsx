@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, ArrowLeft, FileText, CheckCircle, XCircle, Eye, EyeOff, Edit, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowRight, ArrowLeft, FileText, CheckCircle, Eye, EyeOff, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface Question {
@@ -46,8 +46,9 @@ interface ParseResult {
 
 export default function PreviewPage() {
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
-  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set()); // Default: all collapsed
   const [expandedMetadata, setExpandedMetadata] = useState<Set<string>>(new Set());
+  const [showDetails, setShowDetails] = useState(false); // Default: section collapsed
   const router = useRouter();
 
   useEffect(() => {
@@ -82,8 +83,19 @@ export default function PreviewPage() {
     setExpandedMetadata(newExpanded);
   };
 
+  const expandAllQuestions = () => {
+    const allQuestionIds = parseResult?.questions.map(q => q.itemId) || [];
+    setExpandedQuestions(new Set(allQuestionIds));
+  };
+
+  const collapseAllQuestions = () => {
+    setExpandedQuestions(new Set());
+  };
+
   const handleNext = () => {
     if (parseResult?.success && parseResult.totalQuestions > 0) {
+      // Set flag for auto-conversion
+      sessionStorage.setItem('autoStartConversion', 'true');
       router.push('/convert');
     }
   };
@@ -119,39 +131,47 @@ export default function PreviewPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Preview Questions</h1>
-        <p className="text-muted-foreground">
-          Review and verify your questions before converting to QTI format
+      <div className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Review Your Questions</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Verify your parsed questions before generating the QTI package
         </p>
       </div>
 
       {/* Summary */}
-      <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+      <div className="bg-card rounded-lg shadow-sm border border-border p-4 sm:p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
-            <h2 className="text-lg font-semibold text-card-foreground">Parse Results</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-card-foreground">Parsing Complete</h2>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Total Questions: <span className="font-semibold text-card-foreground">{parseResult.totalQuestions}</span>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Total:</span>
+            <span className="font-bold text-lg text-card-foreground">{parseResult.totalQuestions}</span>
+            <span className="text-muted-foreground">{parseResult.totalQuestions === 1 ? 'Question' : 'Questions'}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {parseResult.files.map((file, index) => (
             <div key={index} className="bg-secondary rounded-lg p-4">
               <div className="flex items-center space-x-2 mb-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-secondary-foreground">{file.filename}</span>
+                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-secondary-foreground truncate">{file.filename}</span>
               </div>
-              <div className="text-xs text-muted-foreground">
-                <div>Type: {file.questionType}</div>
-                <div>Questions: {file.questionCount}</div>
+              <div className="space-y-1 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <span>Type:</span>
+                  <span className="font-medium text-secondary-foreground">{file.questionType}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Questions:</span>
+                  <span className="font-medium text-secondary-foreground">{file.questionCount}</span>
+                </div>
               </div>
               {file.error && (
-                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 p-2 rounded">
                   {file.error}
                 </div>
               )}
@@ -160,9 +180,53 @@ export default function PreviewPage() {
         </div>
       </div>
 
-      {/* Questions */}
-      <div className="space-y-4 mb-8">
-        {parseResult.questions.map((question, index) => (
+      {/* Questions Section */}
+      <div className="bg-card rounded-lg shadow-sm border border-border mb-6 sm:mb-8">
+        <div className="p-4 sm:p-6 border-b border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 className="text-lg sm:text-xl font-semibold text-card-foreground">
+              Question Details ({parseResult.totalQuestions})
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              {showDetails && (
+                <>
+                  <button
+                    onClick={expandAllQuestions}
+                    className="text-xs sm:text-sm px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50 transition-colors"
+                  >
+                    Expand All
+                  </button>
+                  <button
+                    onClick={collapseAllQuestions}
+                    className="text-xs sm:text-sm px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50 transition-colors"
+                  >
+                    Collapse All
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="flex items-center gap-2 text-xs sm:text-sm px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                {showDetails ? (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    <span>Hide Details</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    <span>Show Details</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {showDetails ? (
+          <div className="p-6 space-y-4">
+            {parseResult.questions.map((question) => (
           <div key={question.itemId} className="bg-card rounded-lg shadow-sm border border-border">
             {/* Question Header */}
             <div className="p-4 border-b border-border">
@@ -283,25 +347,56 @@ export default function PreviewPage() {
             </div>
           </div>
         ))}
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-4 border border-border/50">
+              <h3 className="text-lg font-medium text-card-foreground mb-3">Question Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {parseResult.files.map((file, index) => (
+                  <div key={index} className="bg-background rounded-lg p-3 border border-border">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">{file.filename}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>Type: <span className="font-medium">{file.questionType}</span></div>
+                      <div>Questions: <span className="font-medium">{file.questionCount}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Click &quot;Show Details&quot; above to view individual questions and their content.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
         <button
           onClick={handleBack}
-          className="flex items-center space-x-2 px-6 py-3 border border-border rounded-lg text-foreground hover:bg-accent"
+          className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg font-medium text-foreground bg-background border border-border hover:bg-accent transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Upload</span>
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          Back to Upload
         </button>
 
         <button
           onClick={handleNext}
           disabled={!parseResult?.success || parseResult.totalQuestions === 0}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className={`inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg font-medium transition-colors ${
+            parseResult?.success && parseResult.totalQuestions > 0
+              ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
+          }`}
         >
-          <span>Continue to Convert</span>
-          <ArrowRight className="h-4 w-4" />
+          Generate QTI Package
+          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       </div>
       </div>

@@ -35,21 +35,9 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       
-      // Reconstruct files from stored data
-      files.forEach((fileInfo, index) => {
-        const storedFileData = sessionStorage.getItem(`file_${index}`);
-        const storedFileType = sessionStorage.getItem(`file_${index}_type`);
-        if (storedFileData) {
-          // Convert base64 back to blob
-          const binaryString = atob(storedFileData);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const blob = new Blob([bytes], { type: storedFileType || fileInfo.type });
-          const file = new File([blob], fileInfo.name, { type: storedFileType || fileInfo.type });
-          formData.append('document', file);
-        }
+      // Add files directly to FormData - no need to store in sessionStorage
+      files.forEach((file) => {
+        formData.append('document', file);
       });
       
       formData.append('questionType', questionType);
@@ -75,10 +63,10 @@ export default function UploadPage() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (files.length === 0) return;
     
-    // Store files and settings in sessionStorage for next step
+    // Store basic file info for reference (not the actual file data)
     const fileData = files.map(file => ({
       name: file.name,
       size: file.size,
@@ -87,37 +75,9 @@ export default function UploadPage() {
     
     sessionStorage.setItem('uploadedFiles', JSON.stringify(fileData));
     sessionStorage.setItem('questionType', questionType);
-    sessionStorage.setItem('actualFiles', JSON.stringify(files.map(f => f.name)));
     
-    // Store actual file data for the workflow
-    const filePromises = files.map((file, index) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          // Convert ArrayBuffer to base64 using a more efficient method
-          const arrayBuffer = reader.result as ArrayBuffer;
-          const uint8Array = new Uint8Array(arrayBuffer);
-          let binaryString = '';
-          const chunkSize = 8192; // Process in chunks to avoid stack overflow
-          
-          for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            const chunk = uint8Array.subarray(i, i + chunkSize);
-            binaryString += String.fromCharCode.apply(null, Array.from(chunk));
-          }
-          
-          const base64String = btoa(binaryString);
-          sessionStorage.setItem(`file_${index}`, base64String);
-          sessionStorage.setItem(`file_${index}_type`, file.type);
-          resolve(true);
-        };
-        reader.readAsArrayBuffer(file);
-      });
-    });
-
-    Promise.all(filePromises).then(async () => {
-      // Auto-parse the files and go directly to preview
-      await parseFiles();
-    });
+    // Parse files directly without storing them in sessionStorage
+    await parseFiles();
   };
 
   return (

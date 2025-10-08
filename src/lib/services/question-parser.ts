@@ -125,29 +125,48 @@ export class QuestionParser {
         const lowerFilename = filename.toLowerCase();
 
         // Check if filename indicates mixed content
-        if (lowerFilename.includes('mixed') || lowerFilename.includes('exam') || lowerFilename.includes('paper')) {
+        if (lowerFilename.includes('mixed') || lowerFilename.includes('exam') || lowerFilename.includes('paper') || lowerFilename.includes('hybrid')) {
             return 'MIXED';
         }
 
-        // Count different question type indicators
-        const mcqCount = (text.match(/A type:|(?:^|\n)\s*A\.\s+|(?:^|\n)\s*B\.\s+|(?:^|\n)\s*C\.\s+|(?:^|\n)\s*D\.\s+/gm) || []).length;
-        const emqCount = (text.match(/R type|Extended Matching|Options ID:|With reference to|Choose the MOST appropriate|options below/gi) || []).length;
-        const saqCount = (text.match(/Short Answer|\(a\)|\(b\)|\(c\)|\d+\s*marks?/gi) || []).length;
+        // Enhanced detection for mixed content
+        // Look for explicit type indicators after "Item ID:"
+        const mcqTypeCount = (text.match(/A type:/gi) || []).length;
+        const emqTypeCount = (text.match(/R type/gi) || []).length;
+        const saqTypeCount = (text.match(/SAQ|Short Answer/gi) || []).length;
+
+        // Count EMQ-specific patterns
+        const optionsIdCount = (text.match(/Options ID:/gi) || []).length;
+        const extendedMatchingCount = (text.match(/Extended Matching/gi) || []).length;
+        
+        // Count MCQ-specific patterns (options A, B, C, D in sequence)
+        const mcqOptionPatterns = text.match(/\n\s*A\.\s+[^\n]+\n\s*B\.\s+[^\n]+\n\s*C\.\s+[^\n]+\n\s*D\.\s+[^\n]+/g) || [];
+        const mcqPatternCount = mcqOptionPatterns.length;
+
+        // If we have both explicit type indicators, it's definitely mixed
+        if ((mcqTypeCount > 0 && emqTypeCount > 0) || 
+            (mcqTypeCount > 0 && saqTypeCount > 0) || 
+            (emqTypeCount > 0 && saqTypeCount > 0)) {
+            return 'MIXED';
+        }
+
+        // If we have EMQ indicators and MCQ patterns, it's mixed
+        if ((optionsIdCount > 0 || extendedMatchingCount > 0 || emqTypeCount > 0) && 
+            (mcqPatternCount > 0 || mcqTypeCount > 0)) {
+            return 'MIXED';
+        }
 
         // Count different question type sections
         const itemIdCount = (text.match(/Item ID:/g) || []).length;
         const sectionCount = [
-            mcqCount > 0 ? 1 : 0,
-            emqCount > 0 ? 1 : 0,
-            saqCount > 0 ? 1 : 0
+            mcqTypeCount > 0 || mcqPatternCount > 0 ? 1 : 0,
+            emqTypeCount > 0 || optionsIdCount > 0 ? 1 : 0,
+            saqTypeCount > 0 ? 1 : 0
         ].reduce((a, b) => a + b, 0);
 
-        // If multiple types detected with significant counts, treat as mixed
+        // If multiple types detected, treat as mixed
         if (sectionCount >= 2) {
-            const total = mcqCount + emqCount + saqCount;
-            if (mcqCount > total * 0.2 && emqCount > total * 0.2) return 'MIXED';
-            if (mcqCount > total * 0.2 && saqCount > total * 0.2) return 'MIXED';
-            if (emqCount > total * 0.2 && saqCount > total * 0.2) return 'MIXED';
+            return 'MIXED';
         }
 
         // Fall back to single type detection
@@ -167,19 +186,28 @@ export class QuestionParser {
             throw new ParseError('No items found. Mixed documents must contain items starting with "Item ID:"');
         }
 
-        // Track shared EMQ options across items
+        // Track shared EMQ options and context across items
         let sharedOptions: EMQOption[] = [];
         let optionsId = '';
+        let sharedContext = '';
 
         for (const item of items) {
             try {
                 const itemType = this.detectItemType(item);
                 let parsedQuestions: Question[] = [];
 
+                // Extract Item ID for logging
+                const itemIdMatch = item.match(/Item ID:\s*(\d+)/);
+                const itemId = itemIdMatch ? itemIdMatch[1] : 'unknown';
+
                 switch (itemType) {
                     case 'MCQ':
                         const mcqQuestion = this.parseSingleMCQ(item);
-                        if (mcqQuestion) parsedQuestions.push(mcqQuestion);
+                        if (mcqQuestion) {
+                            parsedQuestions.push(mcqQuestion);
+                        } else {
+                            console.warn(`parseSingleMCQ returned null for Item ID ${itemId}`);
+                        }
                         break;
                     case 'EMQ':
                         // Check if this item has sub-questions (Sub-Question 1:, Sub-Question 2:, etc.)
@@ -190,20 +218,26 @@ export class QuestionParser {
                             const emqQuestions = this.parseSingleEMQWithSubQuestions(item);
                             if (emqQuestions && Array.isArray(emqQuestions)) {
                                 parsedQuestions.push(...emqQuestions);
+                            } else {
+                                console.warn(`parseSingleEMQWithSubQuestions returned null/empty for Item ID ${itemId}`);
                             }
                         } else {
                             // Use single EMQ parsing for individual Item IDs with shared options
-                            const emqQuestion = this.parseSingleEMQ(item, sharedOptions, optionsId);
+                            const emqQuestion = this.parseSingleEMQ(item, sharedOptions, optionsId, sharedContext);
                             if (emqQuestion) {
-                                // Update shared options if this item has new options
+                                // Update shared options and context if this item has new options
                                 if (emqQuestion.optionsId && emqQuestion.optionsId !== optionsId) {
                                     sharedOptions = emqQuestion.options || [];
                                     optionsId = emqQuestion.optionsId;
+                                    sharedContext = emqQuestion.sharedContext || '';
                                 } else if (emqQuestion.options && emqQuestion.options.length > 0) {
                                     sharedOptions = emqQuestion.options;
                                     optionsId = emqQuestion.optionsId || '';
+                                    sharedContext = emqQuestion.sharedContext || '';
                                 }
                                 parsedQuestions.push(emqQuestion);
+                            } else {
+                                console.warn(`parseSingleEMQ returned null for Item ID ${itemId}`);
                             }
                         }
                         break;
@@ -211,21 +245,27 @@ export class QuestionParser {
                         const saqQuestions = this.parseSingleSAQWithSubQuestions(item);
                         if (saqQuestions && Array.isArray(saqQuestions)) {
                             parsedQuestions.push(...saqQuestions);
+                        } else {
+                            console.warn(`parseSingleSAQWithSubQuestions returned null/empty for Item ID ${itemId}`);
                         }
                         break;
                     default:
-                        console.warn(`Unknown item type for item: ${item.substring(0, 100)}...`);
+                        console.warn(`Unknown item type for Item ID ${itemId}: ${item.substring(0, 100)}...`);
                 }
 
                 allQuestions.push(...parsedQuestions);
             } catch (error) {
-                console.warn(`Failed to parse mixed document item: ${(error as Error).message}`);
+                const itemIdMatch = item.match(/Item ID:\s*(\d+)/);
+                const itemId = itemIdMatch ? itemIdMatch[1] : 'unknown';
+                console.warn(`Failed to parse mixed document Item ID ${itemId}: ${(error as Error).message}`);
             }
         }
 
         if (allQuestions.length === 0) {
             throw new ParseError('No valid questions found in mixed document. Please check the format and try again.');
         }
+
+        console.log(`parseMixedDocument: Parsed ${allQuestions.length} questions from ${items.length} items`);
 
         return allQuestions;
     }
@@ -347,10 +387,8 @@ export class QuestionParser {
             type: 'MCQ',
             title: `Question ${itemId}`,
             text: questionText,
-            questionType,
             options,
             correctAnswer: answer,
-            answer,
             metadata
         };
     }
@@ -364,6 +402,7 @@ export class QuestionParser {
 
         let sharedOptions: EMQOption[] = [];
         let optionsId = '';
+        let sharedContext = '';
 
         for (const item of items) {
             try {
@@ -378,16 +417,18 @@ export class QuestionParser {
                     }
                 } else {
                     // Use single EMQ parsing for individual Item IDs
-                    const result = this.parseSingleEMQ(item, sharedOptions, optionsId);
+                    const result = this.parseSingleEMQ(item, sharedOptions, optionsId, sharedContext);
                     if (result) {
-                        // If this item has a different Options ID, reset shared options
+                        // If this item has a different Options ID, reset shared options and context
                         if (result.optionsId && result.optionsId !== optionsId) {
                             sharedOptions = result.options || [];
                             optionsId = result.optionsId;
+                            sharedContext = result.sharedContext || '';
                         } else if (result.options && result.options.length > 0) {
                             // Only update shared options if it's the same Options ID or no previous Options ID
                             sharedOptions = result.options;
                             optionsId = result.optionsId || '';
+                            sharedContext = result.sharedContext || '';
                         }
                         questions.push(result);
                     }
@@ -403,7 +444,7 @@ export class QuestionParser {
     /**
      * Parse a single EMQ question
      */
-    static parseSingleEMQ(text: string, sharedOptions: EMQOption[] = [], sharedOptionsId: string = ''): EMQQuestion | null {
+    static parseSingleEMQ(text: string, sharedOptions: EMQOption[] = [], sharedOptionsId: string = '', sharedContextFromPrevious: string = ''): EMQQuestion | null {
         const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         
         if (lines.length === 0) return null;
@@ -416,12 +457,16 @@ export class QuestionParser {
         const questionType = itemIdMatch[2];
 
         let questionText = '';
+        let sharedContext = ''; // For topic header and instructions
         let options: EMQOption[] = [];
         let optionsId = '';
         let referenceId = '';
         let answer = '';
         let currentSection = 'question';
         let hasNewOptionsId = false;
+        let topicHeader = ''; // Store the topic header line
+        let instructionText = ''; // Store instruction text after options
+        let collectingInstructions = false;
         
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i];
@@ -431,7 +476,7 @@ export class QuestionParser {
                 optionsId = line.replace('Options ID:', '').trim();
                 options = []; // Reset options for new Options ID
                 hasNewOptionsId = true;
-                currentSection = 'options';
+                currentSection = 'options_header';
                 continue;
             }
             
@@ -445,6 +490,8 @@ export class QuestionParser {
                         options = [...sharedOptions];
                         optionsId = sharedOptionsId;
                     }
+                    // For questions that reference previous options, the question text might be minimal or missing
+                    // so we'll need to handle that specially
                 }
                 currentSection = 'question';
                 continue;
@@ -460,21 +507,91 @@ export class QuestionParser {
                 break;
             }
             
-            if (currentSection === 'options') {
+            if (currentSection === 'options_header') {
+                // The first non-option line after Options ID is the topic header
                 const optionMatch = line.match(/^([A-J])\.\s+(.+)/);
-                if (optionMatch) {
+                if (!optionMatch && !topicHeader) {
+                    topicHeader = line;
+                    continue;
+                } else if (optionMatch) {
+                    currentSection = 'options';
                     options.push({
                         letter: optionMatch[1],
-                        text: optionMatch[2].trim() // Remove unnecessary spacing
+                        text: optionMatch[2].trim()
                     });
-                } else if (!line.match(/^[A-J]\./) && !line.startsWith('Options ID:') && !line.includes('With reference to') && !line.startsWith('Answer:') && !line.startsWith('Profile:')) {
-                    questionText += (questionText ? ' ' : '') + line;
+                }
+            } else if (currentSection === 'options') {
+                // Try to match options with possible item ID prefix (e.g., "24762. A. Option text")
+                const optionWithPrefixMatch = line.match(/^\d+\.\s*([A-J])\.\s+(.+)/);
+                const optionMatch = line.match(/^([A-J])\.\s+(.+)/);
+                
+                if (optionWithPrefixMatch) {
+                    // Remove the item ID prefix and just keep letter + text
+                    options.push({
+                        letter: optionWithPrefixMatch[1],
+                        text: optionWithPrefixMatch[2].trim()
+                    });
+                } else if (optionMatch) {
+                    options.push({
+                        letter: optionMatch[1],
+                        text: optionMatch[2].trim()
+                    });
+                } else {
+                    // After all options, collect instruction text
+                    currentSection = 'instructions';
+                    instructionText = line;
+                }
+            } else if (currentSection === 'instructions') {
+                // Continue collecting instruction text until we hit the actual question
+                // Instructions typically contain phrases like "select", "choose", "match", "above", "following"
+                const lowerLine = line.toLowerCase();
+                const isInstruction = lowerLine.includes('select') || 
+                                     lowerLine.includes('choose') || 
+                                     lowerLine.includes('match the') || 
+                                     lowerLine.includes('may be used') ||
+                                     lowerLine.includes('above') ||
+                                     lowerLine.includes('following') ||
+                                     lowerLine.includes('list of options');
+                
+                if (isInstruction) {
+                    // Still part of instructions
+                    instructionText += ' ' + line;
+                } else {
+                    // This is the actual question text
+                    questionText = line;
+                    currentSection = 'question';
                 }
             } else if (currentSection === 'question') {
-                // Include all non-option lines as question text, even for referenced questions
-                if (!line.match(/^[A-J]\./) && !line.startsWith('Options ID:') && !line.includes('With reference to') && !line.startsWith('Answer:') && !line.startsWith('Profile:') && !line.startsWith('Last Use Statistics:')) {
+                // Collect remaining question text
+                if (!line.match(/^[A-J]\./) && !line.startsWith('Options ID:') && 
+                    !line.includes('With reference to') && !line.startsWith('Answer:') && 
+                    !line.startsWith('Profile:') && !line.startsWith('Last Use Statistics:')) {
                     questionText += (questionText ? ' ' : '') + line;
                 }
+            }
+        }
+
+        // Build shared context from topic header, options, and instructions
+        if (topicHeader) {
+            sharedContext = topicHeader + '\n';
+            if (options.length > 0) {
+                options.forEach(opt => {
+                    sharedContext += `${opt.letter}. ${opt.text}\n`;
+                });
+            }
+            if (instructionText) {
+                sharedContext += '\n' + instructionText.trim();
+            }
+        } else if (referenceId && sharedContextFromPrevious) {
+            // Use shared context from previous question when referencing
+            sharedContext = sharedContextFromPrevious;
+        }
+
+        // If question text is empty or just whitespace, create a placeholder
+        // This handles EMQ questions that reference previous options with no question text
+        if (!questionText || questionText.trim() === '') {
+            if (referenceId) {
+                questionText = `[Image or diagram - Item ${itemId}]`;
             }
         }
 
@@ -485,13 +602,12 @@ export class QuestionParser {
             itemId,
             type: 'EMQ',
             title: `Question ${itemId}`,
-            text: questionText,
-            questionType,
+            text: questionText.trim(),
             optionsId,
             options,
             referenceId,
             correctAnswer: answer,
-            answer,
+            sharedContext: sharedContext.trim() || undefined,
             metadata
         };
     }
@@ -589,7 +705,6 @@ export class QuestionParser {
             subQuestions,
             answerKey,
             totalMarks,
-            answer: answerKey,
             metadata
         };
     }
@@ -713,7 +828,6 @@ export class QuestionParser {
                 }],
                 answerKey: answerKey,
                 totalMarks: subQ.marks,
-                answer: answerKey,
                 // Add shared context information for QTI generation
                 sharedContext: sharedContext.trim() || undefined,
                 parentItemId: itemId,
@@ -803,12 +917,20 @@ export class QuestionParser {
                     };
                     currentSection = 'subquestions';
                 } else if (currentSection === 'options') {
-                    // Parse option lines (A. Option text, B. Option text, etc.)
+                    // Parse option lines with possible item ID prefix (e.g., "24762. A. Option text")
+                    const optionWithPrefixMatch = line.match(/^\d+\.\s*([A-Z])\.\s*(.+)/);
                     const optionMatch = line.match(/^([A-Z])\.\s*(.+)/);
-                    if (optionMatch) {
+                    
+                    if (optionWithPrefixMatch) {
+                        // Remove the item ID prefix and just keep letter + text
+                        options.push({
+                            letter: optionWithPrefixMatch[1],
+                            text: optionWithPrefixMatch[2].trim()
+                        });
+                    } else if (optionMatch) {
                         options.push({
                             letter: optionMatch[1],
-                            text: optionMatch[2]
+                            text: optionMatch[2].trim()
                         });
                     }
                 } else if (currentSection === 'context') {
@@ -847,12 +969,10 @@ export class QuestionParser {
                 type: 'EMQ',
                 title: `Question ${itemId} (Sub-Question ${subQ.number})`,
                 text: subQ.question,
-                questionType,
                 optionsId,
                 options,
                 referenceId: '',
                 correctAnswer: subQ.answer,
-                answer: subQ.answer,
                 // Add shared context information for QTI generation
                 sharedContext: sharedContext.trim() || undefined,
                 parentItemId: itemId,
@@ -982,14 +1102,18 @@ export class QuestionParser {
     static validateQuestions(questions: Question[]): Question[] {
         const validQuestions: Question[] = [];
         
+        console.log(`Validating ${questions.length} questions...`);
+        
         for (const question of questions) {
             try {
                 this.validateSingleQuestion(question);
                 validQuestions.push(question);
             } catch (error) {
-                console.warn(`Question validation failed: ${(error as Error).message}`);
+                console.warn(`Question validation failed for Item ID ${question.itemId}: ${(error as Error).message}`);
             }
         }
+        
+        console.log(`Validation complete: ${validQuestions.length} valid, ${questions.length - validQuestions.length} invalid`);
         
         return validQuestions;
     }

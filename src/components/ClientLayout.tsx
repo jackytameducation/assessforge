@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import ProgressIndicator from "@/components/ProgressIndicator";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
-import { HKUMedLogo } from "@/components/HKUMedLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/theme-provider";
 import { ExternalLink, Menu } from "lucide-react";

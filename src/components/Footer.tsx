@@ -1,7 +1,5 @@
 'use client';
 
-import { HKUMedLogo } from '@/components/HKUMedLogo';
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   

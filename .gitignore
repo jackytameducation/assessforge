@@ -46,9 +46,41 @@ test-*.sh
 test-*.txt
 test-*.json
 test-*.zip
+test-*.mjs
 *.bak
 *.backup
+EMQ_TEST_DATA.js
+
+# sample files and test data
+sample*.txt
+sample*.docx
+*hybrid*.txt
+*emq*.txt
+test-parser.mjs
+test-emq-*.mjs
+sample*.txt
+*sample*.txt
+
+# documentation (detailed fixes)
+EMQ_FIX_SUMMARY.md
+EMQ_STIMULUS_FINAL_FIX.md
+WHITESPACE_FIX.md
+QUICK_TEST_GUIDE.md
 
 # temporary files
 temp/
 tmp/
+
+# documentation (keep only README.md and CONTRIBUTING.md)
+*_FIX*.md
+*_SUMMARY*.md
+*IMPROVEMENTS*.md
+*FLOW*.md
+*_LOG*.md
+*_TEST*.md
+*_GUIDE*.md
+UPDATE_LOG.md
+FIXES.md
+QUICK_REFERENCE.md
+# dev server logs
+dev-server.log
