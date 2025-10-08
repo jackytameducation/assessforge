@@ -39,7 +39,7 @@ export class FileValidator {
     if (file.size > this.MAX_FILE_SIZE) {
       return {
         isValid: false,
-        error: `File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds maximum allowed size (10MB)`,
+        error: `File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds maximum allowed size (20MB)`,
         suggestions: [
           'Try compressing the file',
           'Remove unnecessary images or content',

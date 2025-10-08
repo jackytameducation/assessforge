@@ -35,7 +35,7 @@ export default function UploadPage() {
     try {
       // Check total file size before uploading
       const totalSize = files.reduce((acc, file) => acc + file.size, 0);
-      const maxTotalSize = 5 * 1024 * 1024; // 5MB total
+      const maxTotalSize = 20 * 1024 * 1024; // 20MB total
       
       if (totalSize > maxTotalSize) {
         alert(`Total file size (${(totalSize / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size of ${maxTotalSize / 1024 / 1024}MB. Please reduce file size or upload fewer files.`);
