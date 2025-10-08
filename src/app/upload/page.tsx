@@ -33,6 +33,15 @@ export default function UploadPage() {
 
   const parseFiles = async () => {
     try {
+      // Check total file size before uploading
+      const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+      const maxTotalSize = 5 * 1024 * 1024; // 5MB total
+      
+      if (totalSize > maxTotalSize) {
+        alert(`Total file size (${(totalSize / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size of ${maxTotalSize / 1024 / 1024}MB. Please reduce file size or upload fewer files.`);
+        return;
+      }
+
       const formData = new FormData();
       
       // Add files directly to FormData - no need to store in sessionStorage
@@ -47,6 +56,25 @@ export default function UploadPage() {
         body: formData,
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Failed to parse files';
+        
+        if (response.status === 413) {
+          errorMessage = 'File(s) too large. Please reduce file size or split into smaller files (max 5MB total).';
+        } else {
+          try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.message || errorMessage;
+          } catch {
+            errorMessage = `Server error: ${response.status}`;
+          }
+        }
+        
+        alert(errorMessage);
+        return;
+      }
+
       const result = await response.json();
       
       // Store parse results for preview step
@@ -59,7 +87,7 @@ export default function UploadPage() {
 
     } catch (error) {
       console.error('Error parsing files:', error);
-      alert('Failed to parse files');
+      alert(`Network error: ${(error as Error).message}. Please check your connection and try again.`);
     }
   };
 

@@ -173,7 +173,7 @@ export default function FileUpload() {
                 Drag and drop files here, or click to select files
               </p>
               <p className="text-sm text-gray-500">
-                Supports .docx and .txt files
+                Supports .docx and .txt files (max 20MB total)
               </p>
             </div>
           )}

@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { QTIGenerator } from '@/lib/services/qti-generator';
 import { Question, QTIGenerationOptions } from '@/lib/types';
 
+// Configure route for larger payloads
+export const runtime = 'nodejs';
+export const maxDuration = 60; // Maximum execution time in seconds
+export const dynamic = 'force-dynamic';
+
+// Configure body size limit (20MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+    responseLimit: '20mb',
+  },
+};
+
 interface ConvertRequest {
   questions: Question[];
   assessmentTitle?: string;
