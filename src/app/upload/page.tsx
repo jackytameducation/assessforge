@@ -10,7 +10,37 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [questionType, setQuestionType] = useState<'MCQ' | 'EMQ' | 'SAQ' | 'auto'>('auto');
   const [showFormatGuide, setShowFormatGuide] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const router = useRouter();
+
+  // Constants for file size limits
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+  const WARNING_THRESHOLD = 0.8; // Warn at 80% of limit (16MB)
+
+  // Calculate total file size
+  const getTotalFileSize = () => {
+    return files.reduce((acc, file) => acc + file.size, 0);
+  };
+
+  // Format file size for display
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Get warning level based on file size
+  const getSizeWarningLevel = () => {
+    const totalSize = getTotalFileSize();
+    const percentage = totalSize / MAX_FILE_SIZE;
+    
+    if (percentage >= 1) return 'error';
+    if (percentage >= WARNING_THRESHOLD) return 'warning';
+    return 'normal';
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter(file => 
@@ -32,6 +62,9 @@ export default function UploadPage() {
   };
 
   const parseFiles = async () => {
+    setIsProcessing(true);
+    setUploadProgress('Preparing files...');
+    
     try {
       // Check total file size before uploading
       const totalSize = files.reduce((acc, file) => acc + file.size, 0);
@@ -39,9 +72,12 @@ export default function UploadPage() {
       
       if (totalSize > maxTotalSize) {
         alert(`Total file size (${(totalSize / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size of ${maxTotalSize / 1024 / 1024}MB. Please reduce file size or upload fewer files.`);
+        setIsProcessing(false);
+        setUploadProgress('');
         return;
       }
 
+      setUploadProgress('Uploading files...');
       const formData = new FormData();
       
       // Add files directly to FormData - no need to store in sessionStorage
@@ -51,6 +87,7 @@ export default function UploadPage() {
       
       formData.append('questionType', questionType);
 
+      setUploadProgress('Processing documents...');
       const response = await fetch('/api/parse', {
         method: 'POST',
         body: formData,
@@ -61,7 +98,7 @@ export default function UploadPage() {
         let errorMessage = 'Failed to parse files';
         
         if (response.status === 413) {
-          errorMessage = 'File(s) too large. Please reduce file size or split into smaller files (max 5MB total).';
+          errorMessage = 'File(s) too large. Please reduce file size or split into smaller files (max 20MB total).';
         } else {
           try {
             const errorData = JSON.parse(errorText);
@@ -72,22 +109,30 @@ export default function UploadPage() {
         }
         
         alert(errorMessage);
+        setIsProcessing(false);
+        setUploadProgress('');
         return;
       }
 
+      setUploadProgress('Parsing questions...');
       const result = await response.json();
       
       // Store parse results for preview step
       if (result.success) {
         sessionStorage.setItem('parseResult', JSON.stringify(result));
+        setUploadProgress('Complete! Redirecting...');
         router.push('/preview');
       } else {
         alert('Failed to parse files: ' + result.message);
+        setIsProcessing(false);
+        setUploadProgress('');
       }
 
     } catch (error) {
       console.error('Error parsing files:', error);
       alert(`Network error: ${(error as Error).message}. Please check your connection and try again.`);
+      setIsProcessing(false);
+      setUploadProgress('');
     }
   };
 
@@ -120,15 +165,26 @@ export default function UploadPage() {
 
       {/* File Upload Area */}
       <div className="bg-card rounded-lg shadow-sm border border-border p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+        {isProcessing && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full"></div>
+              <p className="text-sm font-medium">{uploadProgress}</p>
+            </div>
+          </div>
+        )}
+        
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-6 sm:p-8 lg:p-12 text-center cursor-pointer transition-colors ${
-            isDragActive
+            isProcessing 
+              ? 'opacity-50 cursor-not-allowed border-border' 
+              : isDragActive
               ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/20'
               : 'border-border hover:border-blue-400 dark:hover:border-blue-400'
           }`}
         >
-          <input {...getInputProps()} />
+          <input {...getInputProps()} disabled={isProcessing} />
           <Upload className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mb-3 sm:mb-4" />
           {isDragActive ? (
             <p className="text-base sm:text-lg text-blue-600 dark:text-blue-400">Drop the files here...</p>
@@ -138,7 +194,7 @@ export default function UploadPage() {
                 Drag and drop files here, or click to select files
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Supports .docx and .txt files (max 10MB each)
+                Supports .docx and .txt files (max 20MB total)
               </p>
             </div>
           )}
@@ -152,7 +208,8 @@ export default function UploadPage() {
           <select
             value={questionType}
             onChange={(e) => setQuestionType(e.target.value as any)}
-            className="block w-full px-3 py-2 text-sm sm:text-base border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            disabled={isProcessing}
+            className="block w-full px-3 py-2 text-sm sm:text-base border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="auto">Auto-detect</option>
             <option value="MCQ">Multiple Choice Questions (MCQ)</option>
@@ -225,7 +282,81 @@ Answer: Expected answer here`}
       {/* File List */}
       {files.length > 0 && (
         <div className="bg-card rounded-lg shadow-sm border border-border p-4 sm:p-6 mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-lg font-medium text-card-foreground mb-3 sm:mb-4">Uploaded Files</h3>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-medium text-card-foreground">Uploaded Files</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {files.length} file{files.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          
+          {/* Visual Size Indicator */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs sm:text-sm font-medium text-card-foreground">
+                Total Size: {formatFileSize(getTotalFileSize())} / {formatFileSize(MAX_FILE_SIZE)}
+              </span>
+              <span className={`text-xs sm:text-sm font-medium ${
+                getSizeWarningLevel() === 'error' ? 'text-red-600 dark:text-red-400' :
+                getSizeWarningLevel() === 'warning' ? 'text-amber-600 dark:text-amber-400' :
+                'text-green-600 dark:text-green-400'
+              }`}>
+                {((getTotalFileSize() / MAX_FILE_SIZE) * 100).toFixed(1)}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-300 ${
+                  getSizeWarningLevel() === 'error' ? 'bg-red-600' :
+                  getSizeWarningLevel() === 'warning' ? 'bg-amber-500' :
+                  'bg-green-500'
+                }`}
+                style={{ width: `${Math.min((getTotalFileSize() / MAX_FILE_SIZE) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+          
+          {/* Size Warning */}
+          {(() => {
+            const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+            const maxSize = 20 * 1024 * 1024;
+            const percentage = (totalSize / maxSize) * 100;
+            
+            if (percentage >= 100) {
+              return (
+                <div className="mb-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                        File size limit exceeded
+                      </p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        Total size is {formatFileSize(totalSize)}. Please reduce file size or remove some files to stay within the 20MB limit.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else if (percentage >= 80) {
+              return (
+                <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                        Approaching size limit
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        You&apos;re using {percentage.toFixed(1)}% of the 20MB limit. Consider reducing file size if upload fails.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          
           <div className="space-y-2 sm:space-y-3">
             {files.map((file, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
@@ -251,20 +382,51 @@ Answer: Expected answer here`}
       )}
 
       {/* Next Button */}
-      <div className="flex justify-center sm:justify-end">
+      <div className="flex flex-col items-center sm:items-end gap-2">
         <button
           onClick={handleNext}
-          disabled={files.length === 0}
+          disabled={files.length === 0 || isProcessing || getSizeWarningLevel() === 'error'}
           className={`inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg font-medium transition-colors w-full sm:w-auto ${
-            files.length === 0
+            files.length === 0 || isProcessing || getSizeWarningLevel() === 'error'
               ? 'bg-muted text-muted-foreground cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
           }`}
         >
-          Continue to Parse
-          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+          {isProcessing ? (
+            <>
+              <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-current border-t-transparent rounded-full"></div>
+              Processing...
+            </>
+          ) : (
+            <>
+              Continue to Parse
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </>
+          )}
         </button>
+        {getSizeWarningLevel() === 'error' && files.length > 0 && (
+          <p className="text-xs text-red-600 dark:text-red-400 text-center sm:text-right">
+            Remove files to proceed
+          </p>
+        )}
       </div>
+
+      {/* Large File Tips */}
+      {files.length > 0 && getSizeWarningLevel() !== 'normal' && (
+        <div className="mt-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
+          <h3 className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            Tips for Large Files
+          </h3>
+          <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1 ml-5 list-disc">
+            <li>Split large documents into smaller files (e.g., by topic or question type)</li>
+            <li>Remove unnecessary images or embedded content from .docx files</li>
+            <li>Convert .docx to .txt format for smaller file size</li>
+            <li>Process files in batches if you have many documents</li>
+            <li>For very large assessments, consider uploading separately and combining QTI output</li>
+          </ul>
+        </div>
+      )}
       </div>
       <Footer />
     </div>
