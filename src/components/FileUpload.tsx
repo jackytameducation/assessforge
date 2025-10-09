@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { DocumentIcon, ArrowUpTrayIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { getApiUrl } from '@/lib/utils/api';
 
 interface ParsedFile {
   filename: string;
@@ -62,7 +63,7 @@ export default function FileUpload() {
       });
       formData.append('questionType', questionType);
 
-      const response = await fetch('/api/parse', {
+      const response = await fetch(getApiUrl('/api/parse'), {
         method: 'POST',
         body: formData,
       });
@@ -90,7 +91,7 @@ export default function FileUpload() {
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/convert', {
+      const response = await fetch(getApiUrl('/api/convert'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

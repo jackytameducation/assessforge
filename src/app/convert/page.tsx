@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, ArrowLeft, Zap, CheckCircle, XCircle, Loader2, FileText } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { getApiUrl } from '@/lib/utils/api';
 
 interface ConvertResult {
   success: boolean;
@@ -56,7 +57,7 @@ export default function ConvertPage() {
       const originalFilename = parseResult.files[0]?.filename || 'questions';
       const baseFilename = originalFilename.replace(/\.[^/.]+$/, ''); // Remove extension
       
-      const response = await fetch('/api/convert', {
+      const response = await fetch(getApiUrl('/api/convert'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

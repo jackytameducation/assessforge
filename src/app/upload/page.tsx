@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, ArrowRight, FileText, AlertCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { getApiUrl } from '@/lib/utils/api';
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -88,7 +89,7 @@ export default function UploadPage() {
       formData.append('questionType', questionType);
 
       setUploadProgress('Processing documents...');
-      const response = await fetch('/api/parse', {
+      const response = await fetch(getApiUrl('/api/parse'), {
         method: 'POST',
         body: formData,
       });

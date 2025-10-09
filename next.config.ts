@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Headers for API routes (basePath is automatically applied)
         source: '/api/:path*',
         headers: [
           {

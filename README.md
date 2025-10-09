@@ -135,9 +135,17 @@ npm install
 # Start development server
 npm run dev
 
-# Open in browser
-open http://localhost:3000
+# Open in browser (with basePath)
+open http://localhost:3000/assessforge
 ```
+
+### ⚙️ Configuration
+
+The app is configured to run under the `/assessforge` basePath. This means:
+- **Local**: `http://localhost:3000/assessforge`
+- **Production**: `https://yourdomain.com/assessforge`
+
+All routes, API endpoints, and assets are automatically prefixed.
 
 ### 🔧 Available Scripts
 
@@ -195,13 +203,22 @@ open http://localhost:3000
 
 ### 🎯 Recent Improvements
 
+#### Large File Upload Support (October 2025)
+- ✅ **20MB file upload limit** (increased from 5MB)
+- ✅ **Visual size indicator** with color-coded progress bar (green/amber/red)
+- ✅ **Smart warnings** at 80% and 100% thresholds
+- ✅ **Proactive prevention** - button disabled when over limit
+- ✅ **Optimization tips** - auto-shows when approaching limit
+- ✅ **Helper functions** - real-time size calculation and formatting
+- ✅ **Vercel configured** - 1GB memory, 60s timeout for large files
+
 #### EMQ Handling (October 2025)
 - ✅ **Fixed Stimulus Options**: Options now display as "A. Aerosol" (not "24762. A. Aerosol")
 - ✅ **No Duplication**: Question content no longer repeats the stimulus
 - ✅ **Clean Whitespace**: Removed excessive whitespace from all option text
 - ✅ **Correct Structure**: Stimulus contains topic header, options with letters, and instructions
 
-These fixes ensure that EMQ questions are properly structured according to QTI 2.1 standards and display correctly in Inspera and other LMS platforms.
+These improvements ensure robust handling of large files and proper QTI 2.1 structure for EMQ questions in Inspera and other LMS platforms.
 
 ## 🔌 API Documentation
 
@@ -318,147 +335,48 @@ CMD ["npm", "start"]
 ## ⚠️ Technical Notes
 
 ### File Upload Limitations
-- **Maximum file size**: 10MB per file (configurable)
+- **Maximum file size**: 20MB total (single or multiple files)
+- **Individual file limit**: No individual limit, but total must be under 20MB
 - **Supported formats**: .docx (Microsoft Word), .txt (Plain text)
 - **Browser compatibility**: Modern browsers with ES2022+ support
 - **Concurrent uploads**: Multiple files supported simultaneously
+- **Visual feedback**: Color-coded progress bar showing size usage
+- **Smart warnings**: Alerts at 80% (warning) and 100% (error) thresholds
 
 ### Performance Characteristics
 - **Build time**: ~0.8 seconds with Turbopack
 - **Development startup**: ~0.5 seconds hot reload
 - **Bundle size**: Optimized with Next.js 15 chunking
 - **TypeScript**: Full type safety with zero compilation errors
+- **API timeout**: 60 seconds for large file processing
+- **Memory allocation**: 1GB on Vercel for file processing
+- **File processing**: Supports up to 20MB total upload size
 
-### QTI Compliance Notes
-- **QTI Version**: 2.1 (IMS Global standard)
-- **Assessment Platform**: Optimized for Inspera Assessment
-- **Compatibility**: Moodle, Canvas, Blackboard supported
-- **XML Validation**: All output validated against QTI schema
+### Deployment Configuration
 
-## 🎯 Migration Status
+#### Vercel Settings
+```json
+{
+  "functions": {
+    "src/app/api/*/route.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "regions": ["hkg1"]
+}
+```
 
-### ✅ **Completed (September 18, 2025)**
-- [x] Full migration from Node.js/Express to Next.js 15
-- [x] Modern React 19 with TypeScript 5 implementation
-- [x] Complete dark mode support across all pages
-- [x] HKU Medicine branding and Inspera integration
-- [x] Multi-step workflow with session management
-- [x] QTI 2.1 compliant output with proper scoring
-- [x] Comprehensive testing and validation
+#### Next.js Configuration
+- **basePath**: `/assessforge` - All routes prefixed automatically
+- **Body size limit**: 20MB for API routes and server actions
+- **Runtime**: Node.js for API routes (not Edge)
+- **Compression**: Enabled for smaller bundle sizes
 
-### 🚀 **Ready for Production**
-The application is fully functional and ready for deployment to production environments.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-<div align="center">
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
----
-
-## 🎯 Project Status & Changelog
-
-<div align="center">
-
-![Development Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge)
-![Last Updated](https://img.shields.io/badge/Last_Updated-Oct_2025-orange?style=for-the-badge)
-
-</div>
-
-### ✅ Completed Features
-- [x] **Full TypeScript Migration**: Express backend → Next.js 15 with TypeScript
-- [x] **Modern UI/UX**: Streamlined 3-step workflow with improved navigation
-- [x] **Question Type Support**: MCQ, EMQ, SAQ parsing and conversion
-- [x] **Mixed Document Support**: Parse files with multiple question types
-- [x] **File Format Support**: .docx and .txt document processing
-- [x] **QTI 2.1 Compliance**: Valid XML generation with proper structure
-- [x] **EMQ Stimulus Fix**: Correct option formatting and no duplication
-- [x] **Whitespace Fix**: Clean option text without excess spacing
-- [x] **Theme Support**: Light, dark, and system auto-detection
-- [x] **Mobile Responsive**: Full-screen sidebar and mobile-optimized layouts
-- [x] **API Routes**: `/api/parse` and `/api/convert` endpoints
-- [x] **Error Handling**: Comprehensive validation and error reporting
-- [x] **Type Safety**: 100% TypeScript coverage with zero compilation errors
-- [x] **Build System**: Production-ready builds with Turbopack
-- [x] **Documentation**: Comprehensive README and inline documentation
-
-### 🔄 Recent Updates (October 2025)
-
-#### UI/UX Improvements
-- Streamlined workflow from 4 steps to 3 steps (removed redundant convert page)
-- Auto-conversion on navigation for seamless experience
-- Default collapsed questions in preview with expand/collapse all controls
-- Improved light/dark mode readability and contrast
-- Full-screen mobile sidebar for better navigation
-- Enhanced button clarity and visual hierarchy
-
-#### EMQ & Parsing Fixes
-- **Fixed EMQ stimulus options**: Options now show as "A. Aerosol" instead of "24762. A. Aerosol"
-- **Removed stimulus duplication**: EMQ question content now only shows the specific question
-- **Fixed whitespace**: Removed excessive spacing in all option text
-- **Improved mixed document detection**: Better handling of files with multiple question types
-- **Enhanced validation**: All questions now parse correctly with proper error handling
-
-#### Technical Improvements
-- Updated theme system with semantic CSS variables
-- Improved TypeScript type definitions
-- Enhanced file validation and error messages
-- Better ESLint configuration
-- Optimized build performance
-
-### 📊 Migration Summary
-- **From**: JavaScript/Express backend + separate frontend
-- **To**: Next.js 15 full-stack application with TypeScript
-- **Status**: ✅ Complete and production-ready
-- **Improvements**: Better type safety, modern UI, integrated API, enhanced DX
-- **Preserved**: All original functionality, file parsing logic, QTI generation
-
-### 🎯 Future Enhancements (Optional)
-- [ ] User authentication and session management
-- [ ] Batch processing for large document sets
-- [ ] Database integration for question banks
-- [ ] Advanced QTI features and customization options
-- [ ] Question editing interface
-- [ ] Analytics and usage tracking
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Guidelines
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Code Standards
-- Follow TypeScript best practices
-- Maintain 100% type coverage
-- Write clean, documented code
-- Test thoroughly before submitting
-- Follow the existing code style
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-**Built with ❤️ for HKU Medicine using Next.js, TypeScript, and modern web technologies.**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
-<sub>Made with 🚀 for the educational technology community</sub>
-
-</div>
+#### Environment Variables
+```bash
+# .env.local (optional)
+NEXT_PUBLIC_APP_NAME="AssessForge"
+NEXT_PUBLIC_MAX_FILE_SIZE=20971520  # 20MB
+NODE_ENV=development
+```
