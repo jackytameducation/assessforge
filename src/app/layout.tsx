@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AssessForge - HKU Medicine",
-  description: "Transform educational assessments to QTI 2.1 format for HKU Medical School",
+  title: "AssessForge - HKUMed",
+  description: "Transform educational assessments to QTI 2.1 format for HKUMed",
   icons: {
     icon: '/favicon.svg',
     apple: '/favicon.svg',
