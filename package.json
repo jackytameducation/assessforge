@@ -1,7 +1,7 @@
 {
   "name": "qti-transformer-nextjs",
   "version": "1.0.0",
-  "description": "A modern Next.js application for HKU Medicine to transform educational documents into QTI 2.1 format for Inspera assessment platform",
+  "description": "A modern Next.js application for LKS Faculty of Medicine, The University of Hong Kong to transform educational documents into QTI 2.1 format for Inspera assessment platform",
   "keywords": [
     "qti",
     "education",
@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/yourusername/qti-transformer-nextjs/issues"
   },
-  "author": "HKU LKS Faculty of Medicine",
+  "author": "LKS Faculty of Medicine, The University of Hong Kong",
   "license": "MIT",
   "private": false,
   "scripts": {
