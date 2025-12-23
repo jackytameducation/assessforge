@@ -200,8 +200,22 @@ All routes, API endpoints, and assets are automatically prefixed.
 - **Format**: Item ID, question text, sub-questions with marks, answer key
 - **Output**: Extended text interaction for free-form responses
 - **Scoring**: Configurable marks per sub-question
+- **Context**: Shared context rendered as Document type stimulus
 
 ### 🎯 Recent Improvements
+
+#### Question Sequencing & Font Formatting (December 2025)
+- ✅ **Question Sequence Preserved** - Items maintain original file order when imported to Inspera
+- ✅ **Numeric Sequence Prefix** - Item IDs prefixed with 4-digit numbers (e.g., `0001_item_xxx`)
+- ✅ **Title Sequencing** - Question titles include sequence numbers for easy reference
+- ✅ **Font Formatting Support** - Bold, italic, underline, superscript, subscript preserved from DOCX
+- ✅ **Reduced Whitespace** - Minimized XML whitespace to avoid extra line breaks in Inspera
+- ✅ **Blank Prompts** - All question types use empty `<prompt></prompt>` as required
+
+#### Stimulus & Document Type (December 2025)
+- ✅ **Document Type** - EMQ and SAQ stimuli use `<assessmentStimulus>` with `class="document"` for correct Inspera type
+- ✅ **Clean Context** - Removed "Context:" label from SAQ stimulus
+- ✅ **No Expected Length** - Removed `expectedLength` attribute from SAQ `<extendedTextInteraction>`
 
 #### Large File Upload Support (October 2025)
 - ✅ **20MB file upload limit** (increased from 5MB)
@@ -218,7 +232,12 @@ All routes, API endpoints, and assets are automatically prefixed.
 - ✅ **Clean Whitespace**: Removed excessive whitespace from all option text
 - ✅ **Correct Structure**: Stimulus contains topic header, options with letters, and instructions
 
-These improvements ensure robust handling of large files and proper QTI 2.1 structure for EMQ questions in Inspera and other LMS platforms.
+These improvements ensure robust handling of large files, proper question sequencing, and correct QTI 2.1 structure for all question types in Inspera and other LMS platforms.
+
+### ⚠️ Known Limitations
+
+- **Font Formatting**: While bold, italic, underline, superscript, and subscript are supported, the extraction depends on how the DOCX was created. Non-standard formatting may not be captured.
+- **Extra Line Break in Inspera**: After editing a question in Inspera and clicking "Save", an extra line break may be added. This appears to be Inspera platform behavior and may not be fully avoidable through QTI output changes.
 
 ## 🔌 API Documentation
 
