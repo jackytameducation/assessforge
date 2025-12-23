@@ -11,6 +11,8 @@ interface QTIItem {
     item: string;
     filename: string;
     identifier: string;
+    sequence?: number; // Added for preserving order
+    sortKey?: string; // Added for Inspera ordering
 }
 
 interface StimulusGroup {
@@ -36,6 +38,7 @@ export class QTIGenerator {
         // Keep track of shared contexts and EMQ options we've already generated
         const generatedContexts = new Set<string>();
         const generatedEMQStimuli = new Set<string>();
+        let sequenceCounter = 1; // Track original order
 
         // Generate individual item files first to get consistent identifiers
         for (const question of questions) {
@@ -44,31 +47,44 @@ export class QTIGenerator {
                 
                 // Generate EMQ stimulus if options exist and haven't been generated yet
                 if (emqQuestion.optionsId && emqQuestion.options && emqQuestion.options.length > 0 && !generatedEMQStimuli.has(emqQuestion.optionsId)) {
-                    const emqStimulus = this.generateEMQStimulus(emqQuestion.optionsId, emqQuestion.options, emqQuestion.sharedContext);
+                    const currentSeq = sequenceCounter++;
+                    const emqStimulus = this.generateEMQStimulus(emqQuestion.optionsId, emqQuestion.options, emqQuestion.sharedContext, currentSeq);
+                    emqStimulus.sequence = currentSeq;
                     qtiPackage.items.push(emqStimulus);
                     generatedEMQStimuli.add(emqQuestion.optionsId);
                 }
                 
-                const emqItems = this.generateEMQItems(emqQuestion);
-                qtiPackage.items.push(...emqItems);
+                const currentSeq = sequenceCounter++;
+                const emqItems = this.generateEMQItems(emqQuestion, currentSeq);
+                emqItems.forEach(item => {
+                    item.sequence = currentSeq;
+                    qtiPackage.items.push(item);
+                });
             } else if (question.type === 'SAQ') {
                 const saqQuestion = question as SAQQuestion;
                 
                 // Generate shared context document if it exists and hasn't been generated yet
                 if (saqQuestion.sharedContext && saqQuestion.parentItemId && !generatedContexts.has(saqQuestion.parentItemId)) {
-                    const contextDocument = this.generateContextDocument(saqQuestion.parentItemId, saqQuestion.sharedContext);
+                    const currentSeq = sequenceCounter++;
+                    const contextDocument = this.generateContextDocument(saqQuestion.parentItemId, saqQuestion.sharedContext, currentSeq);
+                    contextDocument.sequence = currentSeq;
                     qtiPackage.items.push(contextDocument);
                     generatedContexts.add(saqQuestion.parentItemId);
                 }
                 
-                // Generate the SAQ item itself
-                const item = this.generateQuestionItem(question);
+                // Generate the SAQ item itself with sequence number
+                const currentSeq = sequenceCounter++;
+                const item = this.generateQuestionItem(question, currentSeq);
                 if (item) {
+                    item.sequence = currentSeq;
                     qtiPackage.items.push(item);
                 }
             } else {
-                const item = this.generateQuestionItem(question);
+                // MCQ or other types
+                const currentSeq = sequenceCounter++;
+                const item = this.generateQuestionItem(question, currentSeq);
                 if (item) {
+                    item.sequence = currentSeq;
                     qtiPackage.items.push(item);
                 }
             }
@@ -194,7 +210,7 @@ ${resourcesXML}  </resources>
             if (stimulusItem) {
                 groups.push({
                     stimulusItem,
-                    questions: questions.sort((a, b) => a.identifier.localeCompare(b.identifier))
+                    questions: questions.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
                 });
             }
         });
@@ -203,7 +219,7 @@ ${resourcesXML}  </resources>
         if (orphanQuestions.length > 0) {
             groups.push({
                 stimulusItem: null,
-                questions: orphanQuestions.sort((a, b) => a.identifier.localeCompare(b.identifier))
+                questions: orphanQuestions.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
             });
         }
         
@@ -218,6 +234,19 @@ ${resourcesXML}  </resources>
         
         // Group items by stimulus
         const stimulusGroups = this.groupItemsByStimulus(items);
+        
+        // Sort groups by the minimum sequence number to preserve original order
+        stimulusGroups.sort((a, b) => {
+            const aMinSeq = Math.min(
+                a.stimulusItem?.sequence || Infinity,
+                ...a.questions.map(q => q.sequence || Infinity)
+            );
+            const bMinSeq = Math.min(
+                b.stimulusItem?.sequence || Infinity,
+                ...b.questions.map(q => q.sequence || Infinity)
+            );
+            return aMinSeq - bMinSeq;
+        });
         
         let sectionsXML = '';
         let sectionCounter = 1;
@@ -260,14 +289,14 @@ ${sectionsXML}  </testPart>
     }
 
     /**
-     * Generate question item based on type
+     * Generate question item based on type, with optional sequence number for ordering
      */
-    static generateQuestionItem(question: Question): QTIItem | null {
+    static generateQuestionItem(question: Question, sequenceNum?: number): QTIItem | null {
         switch (question.type) {
             case 'MCQ':
-                return this.generateMCQItem(question as MCQQuestion);
+                return this.generateMCQItem(question as MCQQuestion, sequenceNum);
             case 'SAQ':
-                return this.generateSAQItem(question as SAQQuestion);
+                return this.generateSAQItem(question as SAQQuestion, sequenceNum);
             default:
                 console.warn(`Unsupported question type: ${question.type}`);
                 return null;
@@ -275,11 +304,16 @@ ${sectionsXML}  </testPart>
     }
 
     /**
-     * Generate MCQ item
+     * Generate MCQ item with sequence prefix for proper ordering
      */
-    static generateMCQItem(question: MCQQuestion): QTIItem {
-        const itemId = `item_${question.itemId}_${uuidv4()}`;
+    static generateMCQItem(question: MCQQuestion, sequenceNum?: number): QTIItem {
+        // Use sequence number prefix if provided to ensure proper ordering in Inspera
+        const seqPrefix = sequenceNum !== undefined ? `${String(sequenceNum).padStart(4, '0')}_` : '';
+        const itemId = `${seqPrefix}item_${question.itemId}_${uuidv4()}`;
         const responseId = `RESPONSE_${uuidv4()}`;
+        
+        // Add sequence number to title for ordering visibility
+        const titlePrefix = sequenceNum !== undefined ? `${sequenceNum}. ` : '';
         
         let choicesXML = '';
         question.options.forEach(option => {
@@ -287,11 +321,12 @@ ${sectionsXML}  </testPart>
         });
 
         const itemXML = `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem identifier="${itemId}" title="${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
+<assessmentItem identifier="${itemId}" title="${titlePrefix}${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
                 xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" 
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
   <!-- Item ID: ${question.itemId} -->
+  <!-- Sequence: ${sequenceNum || 'N/A'} -->
   <responseDeclaration identifier="${responseId}" cardinality="single" baseType="identifier">
     <correctResponse>
       <value>choice_${question.correctAnswer}</value>
@@ -308,10 +343,9 @@ ${sectionsXML}  </testPart>
     </defaultValue>
   </outcomeDeclaration>
   <itemBody>
-    <div>
-${this.formatQuestionContent(question)}    </div>
+    <div>${this.formatQuestionContentInline(question)}</div>
     <choiceInteraction responseIdentifier="${responseId}" shuffle="false" maxChoices="1">
-      <prompt>Choose the correct answer:</prompt>
+      <prompt></prompt>
 ${choicesXML}    </choiceInteraction>
   </itemBody>
   <responseProcessing template="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct"/>
@@ -320,17 +354,23 @@ ${choicesXML}    </choiceInteraction>
         return {
             item: itemXML,
             filename: `${itemId}.xml`,
-            identifier: itemId
+            identifier: itemId,
+            sortKey: seqPrefix
         };
     }
 
     /**
-     * Generate EMQ items
+     * Generate EMQ items with sequence prefix for proper ordering
      */
-    static generateEMQItems(question: EMQQuestion): QTIItem[] {
+    static generateEMQItems(question: EMQQuestion, sequenceNum?: number): QTIItem[] {
         const items: QTIItem[] = [];
-        const itemId = `item_${question.itemId}_${uuidv4()}`;
+        // Use sequence number prefix if provided to ensure proper ordering in Inspera
+        const seqPrefix = sequenceNum !== undefined ? `${String(sequenceNum).padStart(4, '0')}_` : '';
+        const itemId = `${seqPrefix}item_${question.itemId}_${uuidv4()}`;
         const responseId = `RESPONSE_${uuidv4()}`;
+
+        // Add sequence number to title for ordering visibility
+        const titlePrefix = sequenceNum !== undefined ? `${sequenceNum}. ` : '';
 
         // Generate options XML for the interaction
         let choicesXML = '';
@@ -343,18 +383,17 @@ ${choicesXML}    </choiceInteraction>
         // DO NOT duplicate the stimulus content here
         let questionContentXML = '';
         if (question.text && question.text.trim()) {
-            questionContentXML = `    <div class="question">
-      <p><strong>${this.escapeXML(question.text)}</strong></p>
-    </div>\n`;
+            questionContentXML = `<div class="question"><p><strong>${this.escapeXML(question.text)}</strong></p></div>`;
         }
 
         const itemXML = `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem identifier="${itemId}" title="${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
+<assessmentItem identifier="${itemId}" title="${titlePrefix}${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
                 xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" 
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
   <!-- Item ID: ${question.itemId} -->
   <!-- Options ID: ${question.optionsId || 'N/A'} -->
+  <!-- Sequence: ${sequenceNum || 'N/A'} -->
   <responseDeclaration identifier="${responseId}" cardinality="single" baseType="identifier">
     <correctResponse>
       <value>choice_${question.correctAnswer}</value>
@@ -371,8 +410,9 @@ ${choicesXML}    </choiceInteraction>
     </defaultValue>
   </outcomeDeclaration>
   <itemBody>
-${questionContentXML}    <choiceInteraction responseIdentifier="${responseId}" shuffle="false" maxChoices="1">
-      <prompt>Select your answer:</prompt>
+    ${questionContentXML}
+    <choiceInteraction responseIdentifier="${responseId}" shuffle="false" maxChoices="1">
+      <prompt></prompt>
 ${choicesXML}    </choiceInteraction>
   </itemBody>
   <responseProcessing template="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct"/>
@@ -381,36 +421,46 @@ ${choicesXML}    </choiceInteraction>
         items.push({
             item: itemXML,
             filename: `${itemId}.xml`,
-            identifier: itemId
+            identifier: itemId,
+            sortKey: seqPrefix
         });
 
         return items;
     }
 
     /**
-     * Generate SAQ item
+     * Generate SAQ item with sequence prefix for proper ordering
      */
-    static generateSAQItem(question: SAQQuestion): QTIItem {
-        const itemId = `item_${question.itemId}_${uuidv4()}`;
+    static generateSAQItem(question: SAQQuestion, sequenceNum?: number): QTIItem {
+        // Use sequence number prefix if provided to ensure proper ordering in Inspera
+        const seqPrefix = sequenceNum !== undefined ? `${String(sequenceNum).padStart(4, '0')}_` : '';
+        const itemId = `${seqPrefix}item_${question.itemId}_${uuidv4()}`;
         const responseId = `RESPONSE_${uuidv4()}`;
 
-        // Generate sub-questions if they exist (without redundant marks)
+        // Add sequence number to title for ordering visibility
+        const titlePrefix = sequenceNum !== undefined ? `${sequenceNum}. ` : '';
+
+        // Generate sub-questions if they exist (without redundant marks) - compact format to avoid extra line breaks
         let subQuestionsXML = '';
         if (question.subQuestions && question.subQuestions.length > 0) {
             question.subQuestions.forEach((subQ, index) => {
                 // Remove marks from the question text as it's redundant now
                 const cleanQuestionText = subQ.question.replace(/\(\d+\s+marks?\)/gi, '').trim();
-                subQuestionsXML += `      <p><strong>${subQ.part}</strong> ${this.escapeXML(cleanQuestionText)}</p>\n`;
+                subQuestionsXML += `<p><strong>${subQ.part}</strong> ${this.escapeXML(cleanQuestionText)}</p>`;
             });
         }
 
+        // Use inline content format to avoid extra line breaks
+        const contentXML = subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContentInline(question);
+
         const itemXML = `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem identifier="${itemId}" title="${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
+<assessmentItem identifier="${itemId}" title="${titlePrefix}${this.escapeXML(question.title)}" adaptive="false" timeDependent="false"
                 xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" 
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
   <!-- Item ID: ${question.itemId} -->
   <!-- Total Marks: ${question.totalMarks} -->
+  <!-- Sequence: ${sequenceNum || 'N/A'} -->
   <templateDeclaration baseType="float" cardinality="single" identifier="SCORE_ALL_CORRECT">
     <defaultValue><value>${question.totalMarks}</value></defaultValue>
   </templateDeclaration>
@@ -429,10 +479,9 @@ ${choicesXML}    </choiceInteraction>
     <p>Answer Key: ${this.escapeXML(question.answerKey)}</p>
   </modalFeedback>
   <itemBody>
-    <div>
-${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(question)}    </div>
-    <extendedTextInteraction responseIdentifier="${responseId}" expectedLength="500">
-      <prompt>Provide your answer:</prompt>
+    <div>${contentXML}</div>
+    <extendedTextInteraction responseIdentifier="${responseId}">
+      <prompt></prompt>
     </extendedTextInteraction>
   </itemBody>
   <responseProcessing>
@@ -448,42 +497,51 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
         return {
             item: itemXML,
             filename: `${itemId}.xml`,
-            identifier: itemId
+            identifier: itemId,
+            sortKey: seqPrefix
         };
     }
 
     /**
-     * Generate QTI Stimulus XML for shared context (SAQ)
+     * Generate QTI Stimulus XML for shared context (SAQ) - Document type for Inspera
      */
-    static generateContextDocument(parentItemId: string, sharedContext: string): QTIItem {
-        const stimulusId = `stimulus_${parentItemId}_${uuidv4()}`;
+    static generateContextDocument(parentItemId: string, sharedContext: string, sequenceNum?: number): QTIItem {
+        // Use sequence number prefix if provided to ensure proper ordering in Inspera
+        const seqPrefix = sequenceNum !== undefined ? `${String(sequenceNum).padStart(4, '0')}_` : '';
+        const stimulusId = `${seqPrefix}stimulus_${parentItemId}_${uuidv4()}`;
+
+        // Add sequence number to title for ordering visibility
+        const titlePrefix = sequenceNum !== undefined ? `${sequenceNum}. ` : '';
 
         const documentXML = `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem identifier="${stimulusId}" title="Stimulus for Question ${parentItemId}" adaptive="false" timeDependent="false"
+<assessmentStimulus identifier="${stimulusId}" title="${titlePrefix}Document ${parentItemId}"
                 xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" 
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
-  <!-- Stimulus Document for Item ID: ${parentItemId} -->
-  <itemBody>
-    <div class="stimulus">
-      <p><strong>Context:</strong></p>
-      <p>${this.escapeXML(sharedContext)}</p>
-    </div>
-  </itemBody>
-</assessmentItem>`;
+  <!-- Sequence: ${sequenceNum || 'N/A'} -->
+  <stimulusBody>
+    <div class="document"><p>${this.escapeXML(sharedContext)}</p></div>
+  </stimulusBody>
+</assessmentStimulus>`;
 
         return {
             item: documentXML,
             filename: `${stimulusId}.xml`,
-            identifier: stimulusId
+            identifier: stimulusId,
+            sortKey: seqPrefix
         };
     }
 
     /**
      * Generate QTI Stimulus XML for EMQ shared context and options
      */
-    static generateEMQStimulus(optionsId: string, options: any[], sharedContext?: string): QTIItem {
-        const stimulusId = `stimulus_${optionsId}_${uuidv4()}`;
+    static generateEMQStimulus(optionsId: string, options: any[], sharedContext?: string, sequenceNum?: number): QTIItem {
+        // Use sequence number prefix if provided to ensure proper ordering in Inspera
+        const seqPrefix = sequenceNum !== undefined ? `${String(sequenceNum).padStart(4, '0')}_` : '';
+        const stimulusId = `${seqPrefix}stimulus_${optionsId}_${uuidv4()}`;
+
+        // Add sequence number to title for ordering visibility
+        const titlePrefix = sequenceNum !== undefined ? `${sequenceNum}. ` : '';
 
         let stimulusContent = '';
         
@@ -523,32 +581,31 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
             // Add options WITH letters
             if (optionsLines.length > 0) {
                 optionsLines.forEach(line => {
-                    stimulusContent += `<p>${this.escapeXML(line)}</p>\n`;
+                    stimulusContent += `<p>${this.escapeXML(line)}</p>`;
                 });
             }
             
             if (instructions) {
-                stimulusContent += `<p>${this.escapeXML(instructions)}</p>\n`;
+                stimulusContent += `<p>${this.escapeXML(instructions)}</p>`;
             }
         }
 
         const documentXML = `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem identifier="${stimulusId}" title="Stimulus for EMQ Options ${optionsId}" adaptive="false" timeDependent="false"
+<assessmentStimulus identifier="${stimulusId}" title="${titlePrefix}Document ${optionsId}"
                 xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" 
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd">
-  <!-- EMQ Stimulus Document for Options ID: ${optionsId} -->
-  <itemBody>
-    <div class="stimulus">
-      ${stimulusContent}
-    </div>
-  </itemBody>
-</assessmentItem>`;
+  <!-- Sequence: ${sequenceNum || 'N/A'} -->
+  <stimulusBody>
+    <div class="document">${stimulusContent}</div>
+  </stimulusBody>
+</assessmentStimulus>`;
 
         return {
             item: documentXML,
             filename: `${stimulusId}.xml`,
-            identifier: stimulusId
+            identifier: stimulusId,
+            sortKey: seqPrefix
         };
     }
 
@@ -564,6 +621,43 @@ ${subQuestionsXML.length > 0 ? subQuestionsXML : this.formatQuestionContent(ques
             // Fallback to plain text
             return `      <p>${this.escapeXML(question.text)}</p>\n`;
         }
+    }
+
+    /**
+     * Format question content inline (no leading/trailing whitespace to avoid extra line breaks in Inspera)
+     */
+    static formatQuestionContentInline(question: Question): string {
+        if (question.htmlContent && question.htmlContent.trim()) {
+            // Convert HTML content with formatting preserved
+            return this.convertHtmlToQTI(question.htmlContent);
+        } else {
+            // Fallback to plain text
+            return `<p>${this.escapeXML(question.text)}</p>`;
+        }
+    }
+
+    /**
+     * Convert HTML content to QTI format, preserving formatting like bold, italic, underline, superscript, subscript
+     */
+    static convertHtmlToQTI(htmlContent: string): string {
+        if (!htmlContent) return '';
+
+        let qtiContent = htmlContent
+            // Normalize whitespace but preserve structure
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            // Remove excessive blank lines
+            .replace(/\n\s*\n\s*\n/g, '\n\n')
+            // Convert span classes to inline styles for Inspera compatibility
+            .replace(/<span class="underline">([^<]*)<\/span>/gi, '<span style="text-decoration: underline;">$1</span>')
+            .replace(/<span class="strikethrough">([^<]*)<\/span>/gi, '<span style="text-decoration: line-through;">$1</span>')
+            // Ensure proper XML structure
+            .trim();
+
+        // Also handle tables
+        qtiContent = this.convertTablesToQTI(qtiContent);
+
+        return qtiContent;
     }
 
     /**

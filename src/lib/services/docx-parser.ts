@@ -67,7 +67,7 @@ export class DocxParser {
     }
 
     /**
-     * Extract HTML content from a .docx file buffer (preserves some formatting)
+     * Extract HTML content from a .docx file buffer (preserves formatting including bold, italic, underline, superscript, subscript)
      */
     static async extractHTML(buffer: Buffer): Promise<string> {
         try {
@@ -81,11 +81,25 @@ export class DocxParser {
                     });
                 }),
                 styleMap: [
+                    // Headings
                     "p[style-name='Heading 1'] => h1:fresh",
                     "p[style-name='Heading 2'] => h2:fresh",
                     "p[style-name='Heading 3'] => h3:fresh",
+                    // Font styles
                     "r[style-name='Strong'] => strong",
-                    "r[style-name='Emphasis'] => em"
+                    "r[style-name='Emphasis'] => em",
+                    // Direct formatting - Bold
+                    "b => strong",
+                    // Direct formatting - Italic
+                    "i => em",
+                    // Direct formatting - Underline
+                    "u => span.underline",
+                    // Direct formatting - Strikethrough
+                    "strike => span.strikethrough",
+                    // Direct formatting - Superscript
+                    "vertAlign[val='superscript'] => sup",
+                    // Direct formatting - Subscript
+                    "vertAlign[val='subscript'] => sub"
                 ]
             };
             
